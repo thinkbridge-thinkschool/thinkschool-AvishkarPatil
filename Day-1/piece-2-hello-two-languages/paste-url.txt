@@ -1,0 +1,13 @@
+## GitHub Repo:
+
+https://github.com/thinkbridge-thinkschool/thinkschool--Day-1-Avishkar/tree/main/piece-2-hello-two-languages
+
+## GitHub Global Repo:
+
+https://github.com/thinkbridge-thinkschool/thinkschool--Day-1-Avishkar.git
+
+
+Q. what surprised you about either runtime?
+
+
+What surprised me was how differently both runtimes handle project setup. In C#, the .NET runtime automatically created a structured project with a .csproj file, build folders, and configuration support. It feels more enterprise-oriented and strongly managed. In contrast, Node 24 could run the TypeScript file directly without any compilation step or project configuration, which felt lightweight and fast for small scripts. The difference showed how .NET provides more built-in structure while Node gives more flexibility with minimal setup.

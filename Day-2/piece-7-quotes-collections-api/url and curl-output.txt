@@ -1,0 +1,96 @@
+### Github repo: 
+
+https://github.com/thinkbridge-thinkschool/thinkschool-quotes-api-dependency-injection-Day-2.git
+
+---
+
+1. IClock Interface
+
+#Url: 
+
+https://github.com/thinkbridge-thinkschool/thinkschool-quotes-api-dependency-injection-Day-2/blob/main/QuotesApi/Services/IClock.cs
+
+#code:
+
+namespace QuotesApi.Services;
+
+public interface IClock
+{
+    DateTimeOffset UtcNow { get; }
+}
+
+
+---
+
+###2. Production Implementation
+
+#Url:
+
+https://github.com/thinkbridge-thinkschool/thinkschool-quotes-api-dependency-injection-Day-2/blob/main/QuotesApi/Services/SystemClock.cs
+
+#code:
+
+namespace QuotesApi.Services;
+
+public class SystemClock : IClock
+{
+    public DateTimeOffset UtcNow => DateTimeOffset.UtcNow;
+}
+
+
+---
+
+###3. DI Registration (Singleton)
+
+#Url:
+
+https://github.com/thinkbridge-thinkschool/thinkschool-quotes-api-dependency-injection-Day-2/blob/main/QuotesApi/Extensions/InfrastructureExtensions.cs
+
+#code:
+
+// Singleton — stateless, thread-safe, one instance for the app's life.
+services.AddSingleton<IClock, SystemClock>();
+
+
+
+###4. Test with a Fake Clock
+
+#url:
+
+https://github.com/thinkbridge-thinkschool/thinkschool-quotes-api-dependency-injection-Day-2/blob/main/QuotesApi.Tests/FakeClock.cs
+
+#code:
+
+// FakeClock — the test double
+public class FakeClock : IClock
+{
+    public DateTimeOffset UtcNow { get; set; }
+        = new DateTimeOffset(2025, 6, 15, 12, 0, 0, TimeSpan.Zero);
+}
+
+// The test
+[Fact]
+public void AddItem_UsesFakeClock_SoTimestampIsDeterministic()
+{
+    // Arrange — freeze time at a known instant
+    var fakeClock = new FakeClock
+    {
+        UtcNow = new DateTimeOffset(2025, 6, 15, 12, 0, 0, TimeSpan.Zero)
+    };
+
+    var collection = new Collection("Test Collection", "owner1");
+
+    // Act — pass the fake clock's time instead of DateTime.UtcNow
+    collection.AddItem(quoteId: 42, addedAt: fakeClock.UtcNow);
+
+    // Assert — the timestamp is exactly what we set, no flakiness
+    var item = Assert.Single(collection.Items);
+    Assert.Equal(42, item.QuoteId);
+    Assert.Equal(
+        new DateTimeOffset(2025, 6, 15, 12, 0, 0, TimeSpan.Zero),
+        item.AddedAt);
+}
+
+
+Test result: Passed — 2/2 tests green, 0 warnings, 0 errors.
+

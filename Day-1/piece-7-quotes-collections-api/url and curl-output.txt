@@ -1,0 +1,49 @@
+### Commit URL
+
+https://github.com/thinkbridge-thinkschool/Thinkschool-quotes-collections-api-Avishkar/commit/6b827d7
+
+
+---
+
+### 2. Curl Demonstration
+
+
+# 1. Create a new collection (This creates Collection ID 1)
+
+$ curl -X POST http://localhost:5075/api/collections \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Stoic Quotes", "ownerId": "user123"}'
+{"id":2,"name":"Stoic Quotes","ownerId":"user123","items":[]}
+
+
+---
+
+# 2. Add Quote 1 to Collection 1 (Succeeds)
+
+$ curl -X POST "http://localhost:5075/api/collections/1/items?quoteId=1" -i
+HTTP/1.1 200 OK
+Content-Length: 0
+Date: Tue, 19 May 2026 09:56:23 GMT
+Server: Kestrel
+
+---
+
+# 3. Attempt to add the same Quote 1 to Collection 1 again (Fails)
+# The aggregate root enforces the invariant and ExceptionMiddleware catches the DomainException
+
+
+$ curl -s -w "\nHTTP Status: %{http_code}\n" -X POST "http://localhost:5075/api/collections/1/items?quoteId=1"
+{"title":"Bad Request","status":400,"detail":"Quote is already in the collection
+."}
+HTTP Status: 400
+
+
+Output (400 Problem Details):
+
+{
+  "title": "Bad Request",
+  "detail": "Quote is already in the collection.",
+  "status": 400
+}
+
+HTTP Status: 400
