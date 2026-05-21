@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "feature/**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  auth-tests:
+    name: Auth integration tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore Day-3/piece-3/QuotesApi.Tests/QuotesApi.Tests.csproj
+
+      - name: Build
+        run: dotnet build Day-3/piece-3/QuotesApi.Tests/QuotesApi.Tests.csproj --no-restore --configuration Release
+
+      - name: Test
+        run: >
+          dotnet test Day-3/piece-3/QuotesApi.Tests/QuotesApi.Tests.csproj
+          --no-build --configuration Release
+          --logger "trx;LogFileName=results.trx"
+          --results-directory ./test-results
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: ./test-results/*.trx
