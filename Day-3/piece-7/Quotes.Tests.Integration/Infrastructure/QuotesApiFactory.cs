@@ -2,7 +2,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using QuotesApi.Data;
 using QuotesApi.Services;
@@ -40,11 +42,17 @@ public sealed class QuotesApiFactory : WebApplicationFactory<Program>
 
         builder.ConfigureServices(services =>
         {
-            // Swap SQLite for SQL Server.
-            var dbDescriptor = services.SingleOrDefault(
-                d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
-            if (dbDescriptor is not null)
-                services.Remove(dbDescriptor);
+            // EF Core 8+ stores the provider configure action as
+            // IDbContextOptionsConfiguration<T> — separate from DbContextOptions<T>.
+            // Removing only DbContextOptions leaves the SQLite action in place, which
+            // then gets combined with our new SQL Server action → "two providers" error.
+            // We must purge ALL three registration types before re-adding.
+            services.RemoveAll<DbContextOptions<AppDbContext>>();
+            services.RemoveAll<AppDbContext>();
+            foreach (var d in services
+                .Where(d => d.ServiceType == typeof(IDbContextOptionsConfiguration<AppDbContext>))
+                .ToList())
+                services.Remove(d);
 
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(_connectionString));

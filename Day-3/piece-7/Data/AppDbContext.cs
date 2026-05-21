@@ -59,7 +59,7 @@ public class AppDbContext : DbContext
             entity.OwnsMany(c => c.Items, items =>
             {
                 items.WithOwner().HasForeignKey("CollectionId");
-                items.Property(i => i.QuoteId).IsRequired();
+                items.Property(i => i.QuoteId).IsRequired().ValueGeneratedNever();
                 items.Property(i => i.AddedAt).IsRequired();
                 items.HasKey("CollectionId", "QuoteId"); // Composite key for the owned type
             });
