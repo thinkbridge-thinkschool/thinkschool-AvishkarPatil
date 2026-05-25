@@ -118,11 +118,13 @@ curl -X POST http://localhost:5000/api/quotes \
 
 Open the Jaeger UI at <http://localhost:16686>, pick service **QuotesApi**, hit Find Traces.
 
+
 ### Screenshot
 
 A trace for `POST /api/quotes/` showing nested spans — the AspNetCore root, the custom `create-quote` span, and the EF Core `INSERT` underneath:
 
-![Jaeger trace](docs/jaeger-trace.png)
+![alt text](image.png)
+![alt text](image-1.png)
 
 ---
 
