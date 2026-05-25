@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <!-- EF Core migrations are auto-generated DDL; nobody tests them -->
+          <ExcludeByFile>**/Migrations/*.cs</ExcludeByFile>
+          <!-- SystemClock wraps DateTime.UtcNow; replaced by FakeClock in every test -->
+          <Exclude>[QuotesApi]QuotesApi.Services.SystemClock</Exclude>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
