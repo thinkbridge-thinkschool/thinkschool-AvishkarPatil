@@ -1,0 +1,63 @@
+using Microsoft.EntityFrameworkCore;
+using QuotesApi.Data;
+using QuotesApi.Models;
+
+namespace QuotesApi.Repositories;
+
+public class QuoteRepository : IQuoteRepository
+{
+    private readonly AppDbContext _context;
+    private readonly ILogger<QuoteRepository> _logger;
+
+    public QuoteRepository(
+        AppDbContext context,
+        ILogger<QuoteRepository> logger)
+    {
+        _context = context;
+        _logger = logger;
+    }
+
+    public async Task<List<Quote>> GetAllAsync(
+        int page,
+        int size,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Fetching quotes");
+
+        return await _context.Quotes
+            .Where(q => !q.IsDeleted)
+            .Skip((page - 1) * size)
+            .Take(size)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<Quote?> GetByIdAsync(
+        int id,
+        CancellationToken cancellationToken)
+    {
+        return await _context.Quotes
+            .FirstOrDefaultAsync(
+                q => q.Id == id && !q.IsDeleted,
+                cancellationToken);
+    }
+
+    public async Task<Quote> CreateAsync(
+        Quote quote,
+        CancellationToken cancellationToken)
+    {
+        _context.Quotes.Add(quote);
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return quote;
+    }
+
+    public async Task<bool> UpdateAsync(
+        Quote quote,
+        CancellationToken cancellationToken)
+    {
+        _context.Quotes.Update(quote);
+        return await _context.SaveChangesAsync(cancellationToken) > 0;
+    }
+
+}
