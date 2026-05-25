@@ -61,6 +61,8 @@ GET /api/quotes/              203 ms  ← total wall time
 
 The Jaeger waterfall shows `list-quotes` (125 ms) consuming most of the request time, with three sequential `load-single-quote` child spans that run one after another — not in parallel. The four `main` EF Core spans confirm four separate database round-trips for a three-quote page.
 
+![Before — N+1 trace showing 9 spans and 203ms duration](image-4.png)
+
 ---
 
 ## Diagnosis note (100 words)
@@ -100,6 +102,8 @@ GET /api/quotes/               6.9 ms  ← 29× faster
 **Span count:** 3 (1 HTTP root + 1 `list-quotes` + 1 EF Core `main`)
 
 The three `load-single-quote` spans are gone. There is now exactly one child DB span under `list-quotes`. Total request time dropped from 203 ms to 6.9 ms (cold) and 4.7 ms (warm). The `list-quotes` span's `quotes.count` tag is visible in Jaeger, replacing the old `n1_bug` tag.
+
+![After — fixed trace showing 3 spans and 6.88ms duration](image-5.png)
 
 ---
 

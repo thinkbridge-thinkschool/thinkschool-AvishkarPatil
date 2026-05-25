@@ -126,6 +126,31 @@ public class TokenServiceTests
         jwt.Claims.Should().Contain(c => c.Type == JwtRegisteredClaimNames.Sub);
     }
 
+    [Fact]
+    public void CreateAccessToken_WithMissingJwtKey_ThrowsInvalidOperationException()
+    {
+        // Arrange — config has no Jwt:Key entry at all (returns null)
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Jwt:Issuer"]   = "TestIssuer",
+                ["Jwt:Audience"] = "TestAudience"
+            })
+            .Build();
+
+        var fakeClock = Substitute.For<IClock>();
+        fakeClock.UtcNow.Returns(DateTime.UtcNow);
+        var sut  = new TokenService(config, fakeClock);
+        var user = User.Create("u@example.com", "P@ssw0rd!");
+
+        // Act
+        var act = () => sut.CreateAccessToken(user);
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>()
+           .WithMessage("*not configured*");
+    }
+
     // ── HashToken ─────────────────────────────────────────────────────────────
 
     [Fact]
