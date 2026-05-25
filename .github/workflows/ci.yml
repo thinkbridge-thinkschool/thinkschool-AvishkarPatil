@@ -2,11 +2,77 @@ name: CI
 
 on:
   push:
-    branches: [main, "feature/**"]
+    branches: ["**"]
   pull_request:
     branches: [main]
 
 jobs:
+  day4-tests:
+    name: Day 4 — Unit + Integration tests with coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Pre-pull SQL Server 2022 image
+        run: docker pull mcr.microsoft.com/mssql/server:2022-latest
+
+      - name: Restore
+        run: dotnet restore Day-4/piece-1/QuotesApi.sln
+
+      - name: Build
+        run: dotnet build Day-4/piece-1/QuotesApi.sln --no-restore --configuration Release
+
+      - name: Test
+        run: >
+          dotnet test Day-4/piece-1/QuotesApi.sln
+          --no-build --configuration Release
+          --logger "trx;LogFileName=test-results.trx"
+          --collect:"XPlat Code Coverage"
+          --results-directory ./test-results
+
+      - name: Install ReportGenerator
+        run: dotnet tool install -g dotnet-reportgenerator-globaltool
+
+      - name: Generate coverage report
+        run: |
+          reportgenerator \
+            -reports:"./test-results/**/coverage.cobertura.xml" \
+            -targetdir:"./coverage-report" \
+            -reporttypes:"TextSummary;Html" \
+            "-assemblyfilters:+QuotesApi"
+
+      - name: Check 70% coverage threshold
+        run: |
+          cat ./coverage-report/Summary.txt
+          COVERAGE=$(grep "Line coverage:" ./coverage-report/Summary.txt | grep -oP '[\d.]+(?=%)')
+          echo "Line coverage: $COVERAGE%"
+          awk -v cov="$COVERAGE" 'BEGIN {
+            if (cov+0 < 70) {
+              print "::error::Coverage " cov "% is below the 70% threshold"
+              exit 1
+            }
+          }'
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: day4-test-results
+          path: ./test-results/**/*.trx
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: day4-coverage-report
+          path: ./coverage-report/
+
   auth-tests:
     name: Auth integration tests
     runs-on: ubuntu-latest
@@ -38,3 +104,41 @@ jobs:
         with:
           name: test-results
           path: ./test-results/*.trx
+
+  integration-tests-sqlserver:
+    name: Integration tests — SQL Server (Testcontainers)
+    runs-on: ubuntu-latest  # Docker is pre-installed on ubuntu-latest runners
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # Pre-pull the image so the first test run doesn't time out waiting for
+      # the 1.5 GB SQL Server 2022 layer download.  Subsequent runs hit the
+      # Docker layer cache on the runner and skip this step quickly.
+      - name: Pre-pull SQL Server 2022 image
+        run: docker pull mcr.microsoft.com/mssql/server:2022-latest
+
+      - name: Restore
+        run: dotnet restore Day-3/piece-7/Quotes.Tests.Integration/Quotes.Tests.Integration.csproj
+
+      - name: Build
+        run: dotnet build Day-3/piece-7/Quotes.Tests.Integration/Quotes.Tests.Integration.csproj --no-restore --configuration Release
+
+      - name: Integration tests
+        run: >
+          dotnet test Day-3/piece-7/Quotes.Tests.Integration/Quotes.Tests.Integration.csproj
+          --no-build --configuration Release
+          --logger "trx;LogFileName=integration-results.trx"
+          --results-directory ./test-results
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: ./test-results/integration-results.trx
