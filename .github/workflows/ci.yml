@@ -34,6 +34,7 @@ jobs:
           --no-build --configuration Release
           --logger "trx;LogFileName=test-results.trx"
           --collect:"XPlat Code Coverage"
+          --settings Day-4/piece-1/coverage.runsettings
           --results-directory ./test-results
 
       - name: Install ReportGenerator
