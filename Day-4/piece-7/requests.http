@@ -1,0 +1,108 @@
+### ─────────────────────────────────────────────────────────────
+###  QuotesApi — manual test file (VS Code REST Client / Rider)
+###  Run the app first:  dotnet run --launch-profile http
+###  Base URL: http://localhost:5075
+### ─────────────────────────────────────────────────────────────
+
+@base = http://localhost:5075
+
+### ═══════════════════════════════════════════
+###  SCHEME A — Internal JWT (demo user)
+### ═══════════════════════════════════════════
+
+### 1. Login → copy accessToken from the response
+# @name login
+POST {{base}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "demo@example.com",
+  "password": "P@ssw0rd!"
+}
+
+###
+
+### 2. Use the internal access token
+# Paste the accessToken value from step 1 below
+@internalToken = PASTE_ACCESS_TOKEN_HERE
+
+GET {{base}}/api/quotes?page=1&size=5
+Authorization: Bearer {{internalToken}}
+
+###
+
+### 3. Refresh the access token
+# Paste the refreshToken value from step 1 below
+@refreshToken = PASTE_REFRESH_TOKEN_HERE
+
+POST {{base}}/api/auth/refresh
+Content-Type: application/json
+
+{
+  "token": "{{refreshToken}}"
+}
+
+###
+
+### 4. Logout (revoke refresh token)
+POST {{base}}/api/auth/logout
+Content-Type: application/json
+
+{
+  "token": "{{refreshToken}}"
+}
+
+###
+
+### ═══════════════════════════════════════════
+###  SCHEME B — Entra ID JWT
+### ═══════════════════════════════════════════
+###
+###  Get a token first (run ONE of these in your terminal):
+###
+###  Option 1 — Azure CLI (easiest)
+###    az login
+###    az account get-access-token --resource api://608dbedc-b894-4e1f-ac64-762423165bef
+###    Copy the "accessToken" field from the JSON output.
+###
+###  Option 2 — Client-credentials flow (service-to-service)
+###    curl -X POST \
+###      https://login.microsoftonline.com/7e394fc8-4b86-4cfe-810e-43f86f8bec47/oauth2/v2.0/token \
+###      -d "grant_type=client_credentials" \
+###      -d "client_id=608dbedc-b894-4e1f-ac64-762423165bef" \
+###      -d "client_secret=YOUR_SECRET" \
+###      -d "scope=api://608dbedc-b894-4e1f-ac64-762423165bef/.default"
+###
+
+### 5. Call the API with an Entra token
+# Paste the Entra accessToken below
+@entraToken = PASTE_ENTRA_TOKEN_HERE
+
+GET {{base}}/api/quotes?page=1&size=5
+Authorization: Bearer {{entraToken}}
+
+###
+
+### ═══════════════════════════════════════════
+###  Negative tests
+### ═══════════════════════════════════════════
+
+### 6. No token → 401
+GET {{base}}/api/quotes?page=1&size=5
+
+###
+
+### 7. Wrong password → 401
+POST {{base}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "demo@example.com",
+  "password": "wrongpassword"
+}
+
+###
+
+### 8. Bad/expired token → 401
+GET {{base}}/api/quotes?page=1&size=5
+Authorization: Bearer thisisnotavalidtoken
