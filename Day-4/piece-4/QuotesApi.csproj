@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.8">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.8">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="QuotesApi.Tests\**" />
+    <Content Remove="QuotesApi.Tests\**" />
+    <EmbeddedResource Remove="QuotesApi.Tests\**" />
+    <None Remove="QuotesApi.Tests\**" />
+    <Compile Remove="Quotes.Tests.Unit\**" />
+    <Content Remove="Quotes.Tests.Unit\**" />
+    <EmbeddedResource Remove="Quotes.Tests.Unit\**" />
+    <None Remove="Quotes.Tests.Unit\**" />
+    <Compile Remove="Quotes.Tests.Integration\**" />
+    <Content Remove="Quotes.Tests.Integration\**" />
+    <EmbeddedResource Remove="Quotes.Tests.Integration\**" />
+    <None Remove="Quotes.Tests.Integration\**" />
+  </ItemGroup>
+
+</Project>
