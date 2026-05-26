@@ -1,0 +1,70 @@
+  Determining projects to restore...
+D:\ThinkBridge\thinkschool\Day-5\piece-6\Quotes.Tests.Unit\Quotes.Tests.Unit.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.12.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+D:\ThinkBridge\thinkschool\Day-5\piece-6\QuotesApi.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.12.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j [D:\ThinkBridge\thinkschool\Day-5\piece-6\Quotes.Tests.Unit\Quotes.Tests.Unit.csproj]
+D:\ThinkBridge\thinkschool\Day-5\piece-6\Quotes.Tests.Unit\Quotes.Tests.Unit.csproj : warning NU1902: Package 'OpenTelemetry.Exporter.OpenTelemetryProtocol' 1.12.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-4625-4j76-fww9
+D:\ThinkBridge\thinkschool\Day-5\piece-6\QuotesApi.csproj : warning NU1902: Package 'OpenTelemetry.Exporter.OpenTelemetryProtocol' 1.12.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-4625-4j76-fww9 [D:\ThinkBridge\thinkschool\Day-5\piece-6\Quotes.Tests.Unit\Quotes.Tests.Unit.csproj]
+  All projects are up-to-date for restore.
+D:\ThinkBridge\thinkschool\Day-5\piece-6\Quotes.Tests.Unit\Quotes.Tests.Unit.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.12.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+D:\ThinkBridge\thinkschool\Day-5\piece-6\Quotes.Tests.Unit\Quotes.Tests.Unit.csproj : warning NU1902: Package 'OpenTelemetry.Exporter.OpenTelemetryProtocol' 1.12.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-4625-4j76-fww9
+D:\ThinkBridge\thinkschool\Day-5\piece-6\QuotesApi.csproj : warning NU1902: Package 'OpenTelemetry.Api' 1.12.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g94r-2vxg-569j
+D:\ThinkBridge\thinkschool\Day-5\piece-6\QuotesApi.csproj : warning NU1902: Package 'OpenTelemetry.Exporter.OpenTelemetryProtocol' 1.12.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-4625-4j76-fww9
+  QuotesApi -> D:\ThinkBridge\thinkschool\Day-5\piece-6\bin\Debug\net10.0\QuotesApi.dll
+  Quotes.Tests.Unit -> D:\ThinkBridge\thinkschool\Day-5\piece-6\Quotes.Tests.Unit\bin\Debug\net10.0\Quotes.Tests.Unit.dll
+Test run for D:\ThinkBridge\thinkschool\Day-5\piece-6\Quotes.Tests.Unit\bin\Debug\net10.0\Quotes.Tests.Unit.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+D:\ThinkBridge\thinkschool\Day-5\piece-6\Quotes.Tests.Unit\bin\Debug\net10.0\Quotes.Tests.Unit.dll
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.8)
+[xUnit.net 00:00:00.13]   Discovering: Quotes.Tests.Unit
+[xUnit.net 00:00:00.20]   Discovered:  Quotes.Tests.Unit
+[xUnit.net 00:00:00.23]   Starting:    Quotes.Tests.Unit
+[xUnit.net 00:00:02.09]   Finished:    Quotes.Tests.Unit
+  Passed Quotes.Tests.Unit.HttpResilienceTests.Persistent_failures_should_exhaust_retries_and_surface_the_last_failure [1 s]
+  Standard Output Messages:
+ [Information] System.Net.Http.HttpClient.entra-id.LogicalHandler: Start processing HTTP request GET https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration
+ [Information] System.Net.Http.HttpClient.entra-id.ClientHandler: Sending HTTP request GET https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration
+ [Information] System.Net.Http.HttpClient.entra-id.ClientHandler: Received HTTP response headers after 0.2859ms - 503
+ [Warning    ] Polly: Execution attempt. Source: 'entra-id-default//entra-id.retry', Operation Key: '', Result: '503', Handled: 'True', Attempt: '0', Execution Time: 19.4006ms
+ [Warning    ] Polly: Resilience event occurred. EventName: 'OnRetry', Source: 'entra-id-default//entra-id.retry', Operation Key: '', Result: '503'
+ [Warning    ] HttpResilience.entra-id: Polly retry 1/3 on pipeline entra-id after 215.8828ms — outcome HTTP 503
+ [Information] System.Net.Http.HttpClient.entra-id.ClientHandler: Sending HTTP request GET https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration
+ [Information] System.Net.Http.HttpClient.entra-id.ClientHandler: Received HTTP response headers after 0.0117ms - 503
+ [Warning    ] Polly: Execution attempt. Source: 'entra-id-default//entra-id.retry', Operation Key: '', Result: '503', Handled: 'True', Attempt: '1', Execution Time: 0.1503ms
+ [Warning    ] Polly: Resilience event occurred. EventName: 'OnRetry', Source: 'entra-id-default//entra-id.retry', Operation Key: '', Result: '503'
+ [Warning    ] HttpResilience.entra-id: Polly retry 2/3 on pipeline entra-id after 78.0295ms — outcome HTTP 503
+ [Information] System.Net.Http.HttpClient.entra-id.ClientHandler: Sending HTTP request GET https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration
+ [Information] System.Net.Http.HttpClient.entra-id.ClientHandler: Received HTTP response headers after 0.0048ms - 503
+ [Warning    ] Polly: Execution attempt. Source: 'entra-id-default//entra-id.retry', Operation Key: '', Result: '503', Handled: 'True', Attempt: '2', Execution Time: 0.11ms
+ [Warning    ] Polly: Resilience event occurred. EventName: 'OnRetry', Source: 'entra-id-default//entra-id.retry', Operation Key: '', Result: '503'
+ [Warning    ] HttpResilience.entra-id: Polly retry 3/3 on pipeline entra-id after 671.0513ms — outcome HTTP 503
+ [Information] System.Net.Http.HttpClient.entra-id.ClientHandler: Sending HTTP request GET https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration
+ [Information] System.Net.Http.HttpClient.entra-id.ClientHandler: Received HTTP response headers after 0.0049ms - 503
+ [Error      ] Polly: Execution attempt. Source: 'entra-id-default//entra-id.retry', Operation Key: '', Result: '503', Handled: 'True', Attempt: '3', Execution Time: 0.1465ms
+ [Information] System.Net.Http.HttpClient.entra-id.LogicalHandler: End processing HTTP request after 1193.334ms - 503
+
+
+  Passed Quotes.Tests.Unit.HttpResilienceTests.Returns_503_twice_then_200_should_trigger_two_retries_and_succeed [432 ms]
+  Standard Output Messages:
+ [Information] System.Net.Http.HttpClient.entra-id.LogicalHandler: Start processing HTTP request GET https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration
+ [Debug      ] Polly: Resilience pipeline executing. Source: 'entra-id-default/', Operation Key: '(null)'
+ [Information] System.Net.Http.HttpClient.entra-id.ClientHandler: Sending HTTP request GET https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration
+ [Information] System.Net.Http.HttpClient.entra-id.ClientHandler: Received HTTP response headers after 0.0035ms - 503
+ [Warning    ] Polly: Execution attempt. Source: 'entra-id-default//entra-id.retry', Operation Key: '', Result: '503', Handled: 'True', Attempt: '0', Execution Time: 0.0811ms
+ [Warning    ] Polly: Resilience event occurred. EventName: 'OnRetry', Source: 'entra-id-default//entra-id.retry', Operation Key: '', Result: '503'
+ [Warning    ] HttpResilience.entra-id: Polly retry 1/3 on pipeline entra-id after 259.0453ms — outcome HTTP 503
+ [Information] System.Net.Http.HttpClient.entra-id.ClientHandler: Sending HTTP request GET https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration
+ [Information] System.Net.Http.HttpClient.entra-id.ClientHandler: Received HTTP response headers after 0.0036ms - 503
+ [Warning    ] Polly: Execution attempt. Source: 'entra-id-default//entra-id.retry', Operation Key: '', Result: '503', Handled: 'True', Attempt: '1', Execution Time: 0.1234ms
+ [Warning    ] Polly: Resilience event occurred. EventName: 'OnRetry', Source: 'entra-id-default//entra-id.retry', Operation Key: '', Result: '503'
+ [Warning    ] HttpResilience.entra-id: Polly retry 2/3 on pipeline entra-id after 129.6054ms — outcome HTTP 503
+ [Information] System.Net.Http.HttpClient.entra-id.ClientHandler: Sending HTTP request GET https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration
+ [Information] System.Net.Http.HttpClient.entra-id.ClientHandler: Received HTTP response headers after 0.0043ms - 200
+ [Information] Polly: Execution attempt. Source: 'entra-id-default//entra-id.retry', Operation Key: '', Result: '200', Handled: 'False', Attempt: '2', Execution Time: 0.5078ms
+ [Debug      ] Polly: Resilience pipeline executed. Source: 'entra-id-default/', Operation Key: '', Result: '200', Execution Time: 401.7999ms
+ [Information] System.Net.Http.HttpClient.entra-id.LogicalHandler: End processing HTTP request after 403.198ms - 200
+
+
+
+Test Run Successful.
+Total tests: 2
+     Passed: 2
+ Total time: 2.8698 Seconds
