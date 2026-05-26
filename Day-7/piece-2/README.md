@@ -1,0 +1,103 @@
+# Day 7 · Piece 2 — Window Functions over Quotes
+
+Window functions against `quotes_db.quotes`, partitioned by `author` and ordered by `created_at`:
+
+- `ROW_NUMBER()` — sequential index per author (`quote_seq`)
+- `RANK()`       — rank on `created_at` per author (`quote_rank`)
+- `SUM(1) OVER (... ROWS UNBOUNDED PRECEDING)` — running count per author
+- `LAG()` / `LEAD()` — previous and next quote dates per author
+- `DATEDIFF(DAY, LAG(...), created_at)` — days since the previous quote (T-SQL replacement for PostgreSQL `date - date`)
+
+## Query
+
+[window-functions-query.sql](window-functions-query.sql):
+
+```sql
+SELECT
+    author,
+    created_at,
+    LEFT(body, 45) + '…'                                          AS body_snippet,
+
+    ROW_NUMBER() OVER (PARTITION BY author ORDER BY created_at, quote_id)  AS quote_seq,
+    RANK()       OVER (PARTITION BY author ORDER BY created_at)            AS quote_rank,
+    SUM(1)       OVER (PARTITION BY author ORDER BY created_at
+                       ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)   AS running_count,
+
+    LAG(created_at)  OVER (PARTITION BY author ORDER BY created_at)        AS prev_quote_date,
+
+    -- DATEDIFF replaces the PostgreSQL  date - date  subtraction
+    DATEDIFF(DAY,
+        LAG(created_at) OVER (PARTITION BY author ORDER BY created_at),
+        created_at)                                               AS days_since_prev,
+
+    LEAD(created_at) OVER (PARTITION BY author ORDER BY created_at)        AS next_quote_date
+
+FROM  quotes
+ORDER BY author, created_at;
+```
+
+## Output
+
+![Query output in SSMS](output.png)
+
+### Result ([result.csv](result.csv))
+
+| author    | created_at | body_snippet                                    | quote_seq | quote_rank | running_count | prev_quote_date | days_since_prev | next_quote_date |
+|-----------|------------|-------------------------------------------------|-----------|------------|---------------|-----------------|-----------------|-----------------|
+| Aristotle | 2024-01-08 | We are what we repeatedly do. Excellence is a…  | 1         | 1          | 1             | NULL            | NULL            | 2024-01-16      |
+| Aristotle | 2024-01-16 | The more you know, the more you know you do n… | 2         | 2          | 2             | 2024-01-08      | 8               | 2024-01-24      |
+| Aristotle | 2024-01-24 | Knowing yourself is the beginning of all wisd… | 3         | 3          | 3             | 2024-01-16      | 8               | 2024-02-01      |
+| Aristotle | 2024-02-01 | It is the mark of an educated mind to enterta… | 4         | 4          | 4             | 2024-01-24      | 8               | 2024-02-10      |
+| Aristotle | 2024-02-10 | Happiness depends upon ourselves.…              | 5         | 5          | 5             | 2024-02-01      | 9               | 2024-02-18      |
+| Aristotle | 2024-02-18 | Quality is not an act, it is a habit.…          | 6         | 6          | 6             | 2024-02-10      | 8               | 2024-02-26      |
+| Aristotle | 2024-02-26 | Hope is a waking dream.…                        | 7         | 7          | 7             | 2024-02-18      | 8               | 2024-03-05      |
+| Aristotle | 2024-03-05 | Patience is bitter, but its fruit is sweet.…    | 8         | 8          | 8             | 2024-02-26      | 8               | 2024-03-12      |
+| Aristotle | 2024-03-12 | To perceive is to suffer.…                      | 9         | 9          | 9             | 2024-03-05      | 7               | 2024-03-19      |
+| Aristotle | 2024-03-19 | Education is the best provision for old age.…   | 10        | 10         | 10            | 2024-03-12      | 7               | NULL            |
+| Epictetus | 2024-01-07 | It is not what happens to you, but how you re… | 1         | 1          | 1             | NULL            | NULL            | 2024-01-20      |
+| Epictetus | 2024-01-20 | Make the best use of what is in your power.…    | 2         | 2          | 2             | 2024-01-07      | 13              | 2024-01-28      |
+| Epictetus | 2024-01-28 | He is a wise man who does not grieve for what… | 3         | 3          | 3             | 2024-01-20      | 8               | 2024-02-05      |
+| Epictetus | 2024-02-05 | First say to yourself what you would be, then… | 4         | 4          | 4             | 2024-01-28      | 8               | 2024-02-13      |
+| Epictetus | 2024-02-13 | Seek not the good in external things; seek it… | 5         | 5          | 5             | 2024-02-05      | 8               | 2024-02-20      |
+| Epictetus | 2024-02-20 | Men are disturbed not by things but by their … | 6         | 6          | 6             | 2024-02-13      | 7               | 2024-02-28      |
+| Epictetus | 2024-02-28 | No man is free who is not master of himself.…   | 7         | 7          | 7             | 2024-02-20      | 8               | 2024-03-06      |
+| Epictetus | 2024-03-06 | Practice yourself in little things.…            | 8         | 8          | 8             | 2024-02-28      | 7               | 2024-03-13      |
+| Epictetus | 2024-03-13 | We cannot choose our external circumstances.…   | 9         | 9          | 9             | 2024-03-06      | 7               | 2024-03-20      |
+| Epictetus | 2024-03-20 | The key is to keep company only with people w… | 10        | 10         | 10            | 2024-03-13      | 7               | NULL            |
+| Marcus    | 2024-01-05 | You have power over your mind, not outside ev… | 1         | 1          | 1             | NULL            | NULL            | 2024-01-14      |
+| Marcus    | 2024-01-14 | The impediment to action advances action.…      | 2         | 2          | 2             | 2024-01-05      | 9               | 2024-01-22      |
+| Marcus    | 2024-01-22 | Waste no more time arguing what a good man sh… | 3         | 3          | 3             | 2024-01-14      | 8               | 2024-01-30      |
+| Marcus    | 2024-01-30 | Very little is needed to make a happy life.…    | 4         | 4          | 4             | 2024-01-22      | 8               | 2024-02-07      |
+| Marcus    | 2024-02-07 | Accept the things to which fate binds you.…     | 5         | 5          | 5             | 2024-01-30      | 8               | 2024-02-15      |
+| Marcus    | 2024-02-15 | If it is not right, do not do it.…              | 6         | 6          | 6             | 2024-02-07      | 8               | 2024-02-22      |
+| Marcus    | 2024-02-22 | The best revenge is to be unlike him who perf… | 7         | 7          | 7             | 2024-02-15      | 7               | 2024-03-01      |
+| Marcus    | 2024-03-01 | Nowhere can man find a quieter or more untrou… | 8         | 8          | 8             | 2024-02-22      | 8               | 2024-03-08      |
+| Marcus    | 2024-03-08 | Do not indulge in dreams of what you do not h… | 9         | 9          | 9             | 2024-03-01      | 7               | 2024-03-15      |
+| Marcus    | 2024-03-15 | When you wake up in the morning, think of the… | 10        | 10         | 10            | 2024-03-08      | 7               | NULL            |
+| Plato     | 2024-01-09 | Be kind, for everyone you meet is fighting a … | 1         | 1          | 1             | NULL            | NULL            | 2024-01-17      |
+| Plato     | 2024-01-17 | Wise men talk because they have something to … | 2         | 2          | 2             | 2024-01-09      | 8               | 2024-01-25      |
+| Plato     | 2024-01-25 | The measure of a man is what he does with pow… | 3         | 3          | 3             | 2024-01-17      | 8               | 2024-02-03      |
+| Plato     | 2024-02-03 | Opinion is the medium between knowledge and i… | 4         | 4          | 4             | 2024-01-25      | 9               | 2024-02-11      |
+| Plato     | 2024-02-11 | Good actions give strength to ourselves and i… | 5         | 5          | 5             | 2024-02-03      | 8               | 2024-02-19      |
+| Plato     | 2024-02-19 | Courage is knowing what not to fear.…           | 6         | 6          | 6             | 2024-02-11      | 8               | 2024-02-27      |
+| Plato     | 2024-02-27 | There is no harm in repeating a good thing.…    | 7         | 7          | 7             | 2024-02-19      | 8               | 2024-03-07      |
+| Plato     | 2024-03-07 | The greatest wealth is to live content with l… | 8         | 8          | 8             | 2024-02-27      | 9               | 2024-03-14      |
+| Plato     | 2024-03-14 | Every heart sings a song, incomplete, until a… | 9         | 9          | 9             | 2024-03-07      | 7               | 2024-03-21      |
+| Plato     | 2024-03-21 | We can easily forgive a child who is afraid o… | 10        | 10         | 10            | 2024-03-14      | 7               | NULL            |
+| Seneca    | 2024-01-03 | We suffer more in imagination than in reality… | 1         | 1          | 1             | NULL            | NULL            | 2024-01-10      |
+| Seneca    | 2024-01-10 | Luck is what happens when preparation meets o… | 2         | 2          | 2             | 2024-01-03      | 7               | 2024-01-18      |
+| Seneca    | 2024-01-18 | Begin at once to live.…                         | 3         | 3          | 3             | 2024-01-10      | 8               | 2024-01-25      |
+| Seneca    | 2024-01-25 | No man was ever wise by chance.…                | 4         | 4          | 4             | 2024-01-18      | 7               | 2024-02-02      |
+| Seneca    | 2024-02-02 | Difficulties strengthen the mind as labor doe… | 5         | 5          | 5             | 2024-01-25      | 8               | 2024-02-09      |
+| Seneca    | 2024-02-09 | A sword never kills anybody; it is a tool in … | 6         | 6          | 6             | 2024-02-02      | 7               | 2024-02-17      |
+| Seneca    | 2024-02-17 | It is not that I am brave, it is that I am bu… | 7         | 7          | 7             | 2024-02-09      | 8               | 2024-02-24      |
+| Seneca    | 2024-02-24 | Retire into yourself as much as possible.…      | 8         | 8          | 8             | 2024-02-17      | 7               | 2024-03-03      |
+| Seneca    | 2024-03-03 | The time will come when diligent research wil… | 9         | 9          | 9             | 2024-02-24      | 8               | 2024-03-10      |
+| Seneca    | 2024-03-10 | He who is brave is free.…                       | 10        | 10         | 10            | 2024-03-03      | 7               | NULL            |
+
+## Run it
+
+```powershell
+sqlcmd -S localhost -i schema-and-seed.sql
+sqlcmd -S localhost -i window-functions-query.sql
+```
