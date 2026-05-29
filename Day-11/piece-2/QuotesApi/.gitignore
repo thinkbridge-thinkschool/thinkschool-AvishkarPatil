@@ -1,0 +1,13 @@
+bin/
+obj/
+.vs/
+*.db
+*.db-shm
+*.db-wal
+*.log
+!polly-test-run.log
+.claude/
+TestResults/
+/TestResults2/
+/TestResults3/
+/coverage-report/
