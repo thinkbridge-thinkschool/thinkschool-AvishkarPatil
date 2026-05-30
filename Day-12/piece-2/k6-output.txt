@@ -1,0 +1,506 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+
+     execution: local
+        script: k6/load-test.js
+        output: -
+
+     scenarios: (100.00%) 4 scenarios, 45 max VUs, 1m45s max duration (incl. graceful stop):
+              * ef_warmup: 5 looping VUs for 5s (exec: efTest, gracefulStop: 30s)
+              * ef_scenario: 20 looping VUs for 30s (exec: efTest, startTime: 5s, gracefulStop: 30s)
+              * dapper_warmup: 5 looping VUs for 5s (exec: dapperTest, startTime: 40s, gracefulStop: 30s)
+              * dapper_scenario: 20 looping VUs for 30s (exec: dapperTest, startTime: 45s, gracefulStop: 30s)
+
+
+running (0m01.0s), 05/45 VUs, 20 complete and 0 interrupted iterations
+ef_warmup         [  20% ] 5 VUs    1.0s/5s
+ef_scenario     • [   0% ] waiting  4.0s
+dapper_warmup   • [   0% ] waiting  39.0s
+dapper_scenario • [   0% ] waiting  44.0s
+
+running (0m02.0s), 05/45 VUs, 52 complete and 0 interrupted iterations
+ef_warmup         [  40% ] 5 VUs    2.0s/5s
+ef_scenario     • [   0% ] waiting  3.0s
+dapper_warmup   • [   0% ] waiting  38.0s
+dapper_scenario • [   0% ] waiting  43.0s
+
+running (0m03.0s), 05/45 VUs, 90 complete and 0 interrupted iterations
+ef_warmup         [  60% ] 5 VUs    3.0s/5s
+ef_scenario     • [   0% ] waiting  2.0s
+dapper_warmup   • [   0% ] waiting  37.0s
+dapper_scenario • [   0% ] waiting  42.0s
+
+running (0m04.0s), 05/45 VUs, 121 complete and 0 interrupted iterations
+ef_warmup         [  80% ] 5 VUs    4.0s/5s
+ef_scenario     • [   0% ] waiting  1.0s
+dapper_warmup   • [   0% ] waiting  36.0s
+dapper_scenario • [   0% ] waiting  41.0s
+
+running (0m05.0s), 05/45 VUs, 160 complete and 0 interrupted iterations
+ef_warmup         [ 100% ] 5 VUs    5.0s/5s
+ef_scenario     • [   0% ] waiting  0.0s
+dapper_warmup   • [   0% ] waiting  35.0s
+dapper_scenario • [   0% ] waiting  40.0s
+
+running (0m06.0s), 20/45 VUs, 209 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [   3% ] 20 VUs   01.0s/30s
+dapper_warmup   • [   0% ] waiting  34.0s
+dapper_scenario • [   0% ] waiting  39.0s
+
+running (0m07.0s), 20/45 VUs, 263 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [   7% ] 20 VUs   02.0s/30s
+dapper_warmup   • [   0% ] waiting  33.0s
+dapper_scenario • [   0% ] waiting  38.0s
+
+running (0m08.0s), 20/45 VUs, 318 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  10% ] 20 VUs   03.0s/30s
+dapper_warmup   • [   0% ] waiting  32.0s
+dapper_scenario • [   0% ] waiting  37.0s
+
+running (0m09.0s), 20/45 VUs, 371 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  13% ] 20 VUs   04.0s/30s
+dapper_warmup   • [   0% ] waiting  31.0s
+dapper_scenario • [   0% ] waiting  36.0s
+
+running (0m10.0s), 20/45 VUs, 426 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  17% ] 20 VUs   05.0s/30s
+dapper_warmup   • [   0% ] waiting  30.0s
+dapper_scenario • [   0% ] waiting  35.0s
+
+running (0m11.0s), 20/45 VUs, 478 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  20% ] 20 VUs   06.0s/30s
+dapper_warmup   • [   0% ] waiting  29.0s
+dapper_scenario • [   0% ] waiting  34.0s
+
+running (0m12.0s), 20/45 VUs, 544 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  23% ] 20 VUs   07.0s/30s
+dapper_warmup   • [   0% ] waiting  28.0s
+dapper_scenario • [   0% ] waiting  33.0s
+
+running (0m13.0s), 20/45 VUs, 595 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  27% ] 20 VUs   08.0s/30s
+dapper_warmup   • [   0% ] waiting  27.0s
+dapper_scenario • [   0% ] waiting  32.0s
+
+running (0m14.0s), 20/45 VUs, 662 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  30% ] 20 VUs   09.0s/30s
+dapper_warmup   • [   0% ] waiting  26.0s
+dapper_scenario • [   0% ] waiting  31.0s
+
+running (0m15.0s), 20/45 VUs, 729 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  33% ] 20 VUs   10.0s/30s
+dapper_warmup   • [   0% ] waiting  25.0s
+dapper_scenario • [   0% ] waiting  30.0s
+
+running (0m16.0s), 20/45 VUs, 790 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  37% ] 20 VUs   11.0s/30s
+dapper_warmup   • [   0% ] waiting  24.0s
+dapper_scenario • [   0% ] waiting  29.0s
+
+running (0m17.0s), 20/45 VUs, 851 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  40% ] 20 VUs   12.0s/30s
+dapper_warmup   • [   0% ] waiting  23.0s
+dapper_scenario • [   0% ] waiting  28.0s
+
+running (0m18.0s), 20/45 VUs, 897 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  43% ] 20 VUs   13.0s/30s
+dapper_warmup   • [   0% ] waiting  22.0s
+dapper_scenario • [   0% ] waiting  27.0s
+
+running (0m19.0s), 20/45 VUs, 953 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  47% ] 20 VUs   14.0s/30s
+dapper_warmup   • [   0% ] waiting  21.0s
+dapper_scenario • [   0% ] waiting  26.0s
+
+running (0m20.0s), 20/45 VUs, 1018 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  50% ] 20 VUs   15.0s/30s
+dapper_warmup   • [   0% ] waiting  20.0s
+dapper_scenario • [   0% ] waiting  25.0s
+
+running (0m21.0s), 20/45 VUs, 1084 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  53% ] 20 VUs   16.0s/30s
+dapper_warmup   • [   0% ] waiting  19.0s
+dapper_scenario • [   0% ] waiting  24.0s
+
+running (0m22.0s), 20/45 VUs, 1139 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  57% ] 20 VUs   17.0s/30s
+dapper_warmup   • [   0% ] waiting  18.0s
+dapper_scenario • [   0% ] waiting  23.0s
+
+running (0m23.0s), 20/45 VUs, 1206 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  60% ] 20 VUs   18.0s/30s
+dapper_warmup   • [   0% ] waiting  17.0s
+dapper_scenario • [   0% ] waiting  22.0s
+
+running (0m24.0s), 20/45 VUs, 1261 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  63% ] 20 VUs   19.0s/30s
+dapper_warmup   • [   0% ] waiting  16.0s
+dapper_scenario • [   0% ] waiting  21.0s
+
+running (0m25.0s), 20/45 VUs, 1329 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  67% ] 20 VUs   20.0s/30s
+dapper_warmup   • [   0% ] waiting  15.0s
+dapper_scenario • [   0% ] waiting  20.0s
+
+running (0m26.0s), 20/45 VUs, 1373 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  70% ] 20 VUs   21.0s/30s
+dapper_warmup   • [   0% ] waiting  14.0s
+dapper_scenario • [   0% ] waiting  19.0s
+
+running (0m27.0s), 20/45 VUs, 1436 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  73% ] 20 VUs   22.0s/30s
+dapper_warmup   • [   0% ] waiting  13.0s
+dapper_scenario • [   0% ] waiting  18.0s
+
+running (0m28.0s), 20/45 VUs, 1506 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  77% ] 20 VUs   23.0s/30s
+dapper_warmup   • [   0% ] waiting  12.0s
+dapper_scenario • [   0% ] waiting  17.0s
+
+running (0m29.0s), 20/45 VUs, 1561 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  80% ] 20 VUs   24.0s/30s
+dapper_warmup   • [   0% ] waiting  11.0s
+dapper_scenario • [   0% ] waiting  16.0s
+
+running (0m30.0s), 20/45 VUs, 1620 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  83% ] 20 VUs   25.0s/30s
+dapper_warmup   • [   0% ] waiting  10.0s
+dapper_scenario • [   0% ] waiting  15.0s
+
+running (0m31.0s), 20/45 VUs, 1678 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  87% ] 20 VUs   26.0s/30s
+dapper_warmup   • [   0% ] waiting  09.0s
+dapper_scenario • [   0% ] waiting  14.0s
+
+running (0m32.0s), 20/45 VUs, 1746 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  90% ] 20 VUs   27.0s/30s
+dapper_warmup   • [   0% ] waiting  08.0s
+dapper_scenario • [   0% ] waiting  13.0s
+
+running (0m33.0s), 20/45 VUs, 1801 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  93% ] 20 VUs   28.0s/30s
+dapper_warmup   • [   0% ] waiting  07.0s
+dapper_scenario • [   0% ] waiting  12.0s
+
+running (0m34.0s), 20/45 VUs, 1863 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [  97% ] 20 VUs   29.0s/30s
+dapper_warmup   • [   0% ] waiting  06.0s
+dapper_scenario • [   0% ] waiting  11.0s
+
+running (0m35.0s), 20/45 VUs, 1928 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario       [ 100% ] 20 VUs   30.0s/30s
+dapper_warmup   • [   0% ] waiting  05.0s
+dapper_scenario • [   0% ] waiting  10.0s
+
+running (0m36.0s), 00/45 VUs, 1948 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario     ✓ [ 100% ] 20 VUs   30s
+dapper_warmup   • [   0% ] waiting  04.0s
+dapper_scenario • [   0% ] waiting  09.0s
+
+running (0m37.0s), 00/45 VUs, 1948 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario     ✓ [ 100% ] 20 VUs   30s
+dapper_warmup   • [   0% ] waiting  03.0s
+dapper_scenario • [   0% ] waiting  08.0s
+
+running (0m38.0s), 00/45 VUs, 1948 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario     ✓ [ 100% ] 20 VUs   30s
+dapper_warmup   • [   0% ] waiting  02.0s
+dapper_scenario • [   0% ] waiting  07.0s
+
+running (0m39.0s), 00/45 VUs, 1948 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario     ✓ [ 100% ] 20 VUs   30s
+dapper_warmup   • [   0% ] waiting  01.0s
+dapper_scenario • [   0% ] waiting  06.0s
+
+running (0m40.0s), 00/45 VUs, 1948 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario     ✓ [ 100% ] 20 VUs   30s
+dapper_warmup   • [   0% ] waiting  00.0s
+dapper_scenario • [   0% ] waiting  05.0s
+
+running (0m41.0s), 05/45 VUs, 1988 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario     ✓ [ 100% ] 20 VUs   30s
+dapper_warmup     [  20% ] 5 VUs    1.0s/5s
+dapper_scenario • [   0% ] waiting  04.0s
+
+running (0m42.0s), 05/45 VUs, 2033 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario     ✓ [ 100% ] 20 VUs   30s
+dapper_warmup     [  40% ] 5 VUs    2.0s/5s
+dapper_scenario • [   0% ] waiting  03.0s
+
+running (0m43.0s), 05/45 VUs, 2078 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario     ✓ [ 100% ] 20 VUs   30s
+dapper_warmup     [  60% ] 5 VUs    3.0s/5s
+dapper_scenario • [   0% ] waiting  02.0s
+
+running (0m44.0s), 05/45 VUs, 2121 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario     ✓ [ 100% ] 20 VUs   30s
+dapper_warmup     [  80% ] 5 VUs    4.0s/5s
+dapper_scenario • [   0% ] waiting  01.0s
+
+running (0m45.0s), 05/45 VUs, 2164 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs    5s
+ef_scenario     ✓ [ 100% ] 20 VUs   30s
+dapper_warmup     [ 100% ] 5 VUs    5.0s/5s
+dapper_scenario • [   0% ] waiting  00.0s
+
+running (0m46.0s), 20/45 VUs, 2307 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [   3% ] 20 VUs  01.0s/30s
+
+running (0m47.0s), 20/45 VUs, 2492 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [   7% ] 20 VUs  02.0s/30s
+
+running (0m48.0s), 20/45 VUs, 2664 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  10% ] 20 VUs  03.0s/30s
+
+running (0m49.0s), 20/45 VUs, 2841 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  13% ] 20 VUs  04.0s/30s
+
+running (0m50.0s), 20/45 VUs, 3027 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  17% ] 20 VUs  05.0s/30s
+
+running (0m51.0s), 20/45 VUs, 3200 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  20% ] 20 VUs  06.0s/30s
+
+running (0m52.0s), 20/45 VUs, 3381 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  23% ] 20 VUs  07.0s/30s
+
+running (0m53.0s), 20/45 VUs, 3561 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  27% ] 20 VUs  08.0s/30s
+
+running (0m54.0s), 20/45 VUs, 3745 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  30% ] 20 VUs  09.0s/30s
+
+running (0m55.0s), 20/45 VUs, 3866 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  33% ] 20 VUs  10.0s/30s
+
+running (0m56.0s), 20/45 VUs, 4039 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  37% ] 20 VUs  11.0s/30s
+
+running (0m57.0s), 20/45 VUs, 4189 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  40% ] 20 VUs  12.0s/30s
+
+running (0m58.0s), 20/45 VUs, 4348 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  43% ] 20 VUs  13.0s/30s
+
+running (0m59.0s), 20/45 VUs, 4502 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  47% ] 20 VUs  14.0s/30s
+
+running (1m00.0s), 20/45 VUs, 4683 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  50% ] 20 VUs  15.0s/30s
+
+running (1m01.0s), 20/45 VUs, 4858 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  53% ] 20 VUs  16.0s/30s
+
+running (1m02.0s), 20/45 VUs, 5034 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  57% ] 20 VUs  17.0s/30s
+
+running (1m03.0s), 20/45 VUs, 5205 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  60% ] 20 VUs  18.0s/30s
+
+running (1m04.0s), 20/45 VUs, 5386 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  63% ] 20 VUs  19.0s/30s
+
+running (1m05.0s), 20/45 VUs, 5549 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  67% ] 20 VUs  20.0s/30s
+
+running (1m06.0s), 20/45 VUs, 5701 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  70% ] 20 VUs  21.0s/30s
+
+running (1m07.0s), 20/45 VUs, 5862 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  73% ] 20 VUs  22.0s/30s
+
+running (1m08.0s), 20/45 VUs, 6009 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  77% ] 20 VUs  23.0s/30s
+
+running (1m09.0s), 20/45 VUs, 6192 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  80% ] 20 VUs  24.0s/30s
+
+running (1m10.0s), 20/45 VUs, 6374 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  83% ] 20 VUs  25.0s/30s
+
+running (1m11.0s), 20/45 VUs, 6538 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  87% ] 20 VUs  26.0s/30s
+
+running (1m12.0s), 20/45 VUs, 6718 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  90% ] 20 VUs  27.0s/30s
+
+running (1m13.0s), 20/45 VUs, 6900 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  93% ] 20 VUs  28.0s/30s
+
+running (1m14.0s), 20/45 VUs, 7064 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [  97% ] 20 VUs  29.0s/30s
+
+running (1m15.0s), 20/45 VUs, 7245 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario   [ 100% ] 20 VUs  30.0s/30s
+[32m     ✓ ef: status 200[0m
+[32m     ✓ ef: has quotes[0m
+[32m     ✓ dapper: status 200[0m
+[32m     ✓ dapper: has quotes[0m
+
+     checks[2m.........................:[0m [36m100.00%[0m [36;2m✓ 14538[0m    [36;2m✗ 0[0m   
+   [32m✓[0m dapper_duration[2m................:[0m avg=[36m16.38ms[0m  min=[36m1.27ms[0m   med=[36m8.35ms[0m   max=[36m222.5ms[0m  p(50)=[36m8.35ms[0m   p(90)=[36m35.21ms[0m  p(95)=[36m60.14ms[0m  p(99)=[36m131.29ms[0m
+     data_received[2m..................:[0m [36m27 MB[0m   [36;2m355 kB/s[0m
+     data_sent[2m......................:[0m [36m676 kB[0m  [36;2m9.0 kB/s[0m
+   [32m✓[0m ef_duration[2m....................:[0m avg=[36m235.78ms[0m min=[36m40.42ms[0m  med=[36m232.38ms[0m max=[36m464.01ms[0m p(50)=[36m232.38ms[0m p(90)=[36m328.11ms[0m p(95)=[36m360.35ms[0m p(99)=[36m411.79ms[0m
+     http_req_blocked[2m...............:[0m avg=[36m8.05µs[0m   min=[36m0s[0m       med=[36m0s[0m       max=[36m10.03ms[0m  p(50)=[36m0s[0m       p(90)=[36m0s[0m       p(95)=[36m0s[0m       p(99)=[36m0s[0m      
+     http_req_connecting[2m............:[0m avg=[36m5.54µs[0m   min=[36m0s[0m       med=[36m0s[0m       max=[36m10.03ms[0m  p(50)=[36m0s[0m       p(90)=[36m0s[0m       p(95)=[36m0s[0m       p(99)=[36m0s[0m      
+     http_req_duration[2m..............:[0m avg=[36m70.93ms[0m  min=[36m1.27ms[0m   med=[36m11.62ms[0m  max=[36m464.01ms[0m p(50)=[36m11.62ms[0m  p(90)=[36m245.39ms[0m p(95)=[36m288.08ms[0m p(99)=[36m375.17ms[0m
+       { expected_response:true }[2m...:[0m avg=[36m70.93ms[0m  min=[36m1.27ms[0m   med=[36m11.62ms[0m  max=[36m464.01ms[0m p(50)=[36m11.62ms[0m  p(90)=[36m245.39ms[0m p(95)=[36m288.08ms[0m p(99)=[36m375.17ms[0m
+     http_req_failed[2m................:[0m [36m0.00%[0m   [36;2m✓ 0[0m        [36;2m✗ 7269[0m
+     http_req_receiving[2m.............:[0m avg=[36m24.81ms[0m  min=[36m0s[0m       med=[36m7.95ms[0m   max=[36m340.26ms[0m p(50)=[36m7.95ms[0m   p(90)=[36m77.22ms[0m  p(95)=[36m131.1ms[0m  p(99)=[36m210.93ms[0m
+     http_req_sending[2m...............:[0m avg=[36m10.08µs[0m  min=[36m0s[0m       med=[36m0s[0m       max=[36m14ms[0m     p(50)=[36m0s[0m       p(90)=[36m0s[0m       p(95)=[36m0s[0m       p(99)=[36m102.23µs[0m
+     http_req_tls_handshaking[2m.......:[0m avg=[36m0s[0m       min=[36m0s[0m       med=[36m0s[0m       max=[36m0s[0m       p(50)=[36m0s[0m       p(90)=[36m0s[0m       p(95)=[36m0s[0m       p(99)=[36m0s[0m      
+     http_req_waiting[2m...............:[0m avg=[36m46.1ms[0m   min=[36m0s[0m       med=[36m1.16ms[0m   max=[36m410.7ms[0m  p(50)=[36m1.16ms[0m   p(90)=[36m178.06ms[0m p(95)=[36m213.66ms[0m p(99)=[36m288.84ms[0m
+     http_reqs[2m......................:[0m [36m7269[0m    [36;2m96.75754/s[0m
+     iteration_duration[2m.............:[0m avg=[36m172.54ms[0m min=[36m101.72ms[0m med=[36m113.07ms[0m max=[36m564.21ms[0m p(50)=[36m113.07ms[0m p(90)=[36m346.91ms[0m p(95)=[36m390.06ms[0m p(99)=[36m476.35ms[0m
+     iterations[2m.....................:[0m [36m7269[0m    [36;2m96.75754/s[0m
+     vus[2m............................:[0m [36m20[0m      [36;2mmin=0[0m      [36;2mmax=20[0m
+     vus_max[2m........................:[0m [36m45[0m      [36;2mmin=45[0m     [36;2mmax=45[0m
+══ Day-12 Piece-2 — EF Core vs Dapper ══════════════════════
+  EF Core   p50 : 232.4 ms
+  EF Core   p99 : 411.8 ms
+  Dapper    p50 : 8.4 ms
+  Dapper    p99 : 131.3 ms
+  p99 ratio (EF/Dapper) : 3.14×
+  Note: 5-second warmup discarded before each measured phase.
+════════════════════════════════════════════════════════════
+
+running (1m15.1s), 00/45 VUs, 7269 complete and 0 interrupted iterations
+ef_warmup       ✓ [ 100% ] 5 VUs   5s
+ef_scenario     ✓ [ 100% ] 20 VUs  30s
+dapper_warmup   ✓ [ 100% ] 5 VUs   5s
+dapper_scenario ✓ [ 100% ] 20 VUs  30s
