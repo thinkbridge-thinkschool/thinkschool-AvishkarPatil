@@ -29,9 +29,15 @@ public class QuoteRepository : IQuoteRepository
         activity?.SetTag("quotes.page", page);
         activity?.SetTag("quotes.page_size", size);
 
-        // FIX: single query — all columns fetched in one round-trip
+        // Order newest-first (descending Id) so a freshly created quote — which
+        // gets the highest auto-increment Id — lands at the TOP of page 1 and is
+        // immediately visible/searchable after a POST + list reload. Without an
+        // explicit OrderBy, SQL returns clustered-PK (ascending-Id) order, which
+        // pushes new quotes onto the LAST page. An OrderBy before Skip/Take is
+        // also required for deterministic paging.
         var quotes = await _context.Quotes
             .Where(q => !q.IsDeleted)
+            .OrderByDescending(q => q.Id)
             .Skip((page - 1) * size)
             .Take(size)
             .ToListAsync(cancellationToken);
