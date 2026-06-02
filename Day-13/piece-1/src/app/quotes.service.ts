@@ -1,65 +1,53 @@
-import { Injectable, signal } from '@angular/core';
-import { Quote }              from './models/quote';
+import { Injectable, computed, signal } from '@angular/core';
+import { httpResource }                  from '@angular/common/http';
+import { CollectionDetail, Quote }       from './models/quote';
 
-// Injectable service that owns the canonical signal state for the quote list.
-// Components consume the exposed WritableSignal directly — no Subject, no
-// BehaviorSubject, no Observable needed for local state.
+// Injectable service that loads a collection from the REAL Week-1 API and
+// exposes it as signals.
 //
-// inject() pattern: callers use
+// Day-13 is signals-first, so this uses Angular's httpResource() rather than
+// HttpClient + Observable + subscribe.  httpResource:
+//   • fires the request as soon as it is created (in an injection context)
+//   • re-fetches automatically whenever a signal read in its URL factory
+//     changes (here: collectionId)
+//   • exposes .value() / .isLoading() / .error() / .status() as SIGNALS,
+//     so the component reads them directly with no async pipe and no manual
+//     subscription teardown
+//
+// inject() pattern: components consume this with
 //   private readonly quotesService = inject(QuotesService);
-// instead of constructor(private quotesService: QuotesService).
-// Both wire DI identically; inject() works outside a constructor (in field
-// initialisers, factory functions, etc.) which is more flexible.
 @Injectable({ providedIn: 'root' })
 export class QuotesService {
 
-  // The signal is the single source of truth for the quote list.
-  // It is WritableSignal<Quote[]> — the service owns writes;
-  // consumers get a read-only view via quotes.asReadonly() if needed.
-  readonly quotes = signal<Quote[]>([
-    {
-      id: 1, author: 'Marcus Aurelius',
-      text: 'The impediment to action advances action. What stands in the way becomes the way.',
-      createdAt: '2026-05-15T09:00:00Z', addedAt: '2026-05-30T10:00:00Z',
-    },
-    {
-      id: 2, author: 'Seneca',
-      text: 'We suffer more in imagination than in reality.',
-      createdAt: '2026-05-15T09:01:00Z', addedAt: '2026-05-30T10:01:00Z',
-    },
-    {
-      id: 3, author: 'Epictetus',
-      text: 'It is not what happens to you, but how you react to it that matters.',
-      createdAt: '2026-05-15T09:02:00Z', addedAt: '2026-05-30T10:02:00Z',
-    },
-    {
-      id: 4, author: 'Marcus Aurelius',
-      text: 'You have power over your mind, not outside events. Realise this, and you will find strength.',
-      createdAt: '2026-05-15T09:03:00Z', addedAt: '2026-05-30T10:03:00Z',
-    },
-    {
-      id: 5, author: 'Seneca',
-      text: 'Luck is what happens when preparation meets opportunity.',
-      createdAt: '2026-05-15T09:04:00Z', addedAt: '2026-05-30T10:04:00Z',
-    },
-    {
-      id: 6, author: 'Epictetus',
-      text: 'Make the best use of what is in your power and take the rest as it happens.',
-      createdAt: '2026-05-15T09:05:00Z', addedAt: '2026-05-30T10:05:00Z',
-    },
-    {
-      id: 7, author: 'Marcus Aurelius',
-      text: 'Very little is needed to make a happy life; it is all within yourself.',
-      createdAt: '2026-05-15T09:06:00Z', addedAt: '2026-05-30T10:06:00Z',
-    },
-  ]);
+  // Which collection to show.  A writable signal so changing it re-triggers
+  // the httpResource fetch.  Defaults to collection 1 (seeded by Day-11/12).
+  readonly collectionId = signal<number>(1);
 
-  addQuote(quote: Quote): void {
-    // signal.update produces a new array — signals are immutable-by-convention
-    this.quotes.update(list => [...list, quote]);
-  }
+  // ── The real API call ─────────────────────────────────────────────
+  // GET /api/collections/{id}  →  proxied to http://localhost:5075 by the
+  // Angular dev server (proxy.conf.json).  Returns CollectionDetailReadModel.
+  // The URL factory reads collectionId(), so writing collectionId.set(2)
+  // automatically issues a fresh request.
+  readonly collection = httpResource<CollectionDetail>(
+    () => `/api/collections/${this.collectionId()}`,
+  );
 
-  removeQuote(id: number): void {
-    this.quotes.update(list => list.filter(q => q.id !== id));
+  // ── Signal projections the component consumes ─────────────────────
+  // quotes(): the list, or [] while loading / on error.  Components derive
+  // their computed() filters from this exactly as before — the only change
+  // is that the data now originates from the live API instead of a fixture.
+  readonly quotes = computed<Quote[]>(() => this.collection.value()?.quotes ?? []);
+
+  // Collection name for the header (empty until the first response arrives).
+  readonly collectionName = computed<string>(() => this.collection.value()?.name ?? '');
+
+  // Pass-through of the resource's own state signals so the component can
+  // render loading / error / empty / loaded branches with @if / @switch.
+  readonly isLoading = this.collection.isLoading;
+  readonly error     = this.collection.error;
+
+  // Allow the UI to switch collections (re-fetch happens automatically).
+  loadCollection(id: number): void {
+    this.collectionId.set(id);
   }
 }
