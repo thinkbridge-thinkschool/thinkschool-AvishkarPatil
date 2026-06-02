@@ -6,6 +6,16 @@ on:
   pull_request:
     branches: [main]
 
+# Testcontainers auto-starts the "Ryuk" resource-reaper from Docker Hub
+# (registry-1.docker.io), which the GitHub-hosted runners can't reliably reach
+# — the image pull times out and every integration test fails before the SQL
+# Server container (pre-pulled from mcr.microsoft.com) is even touched.
+# Ryuk only force-cleans containers if the test process is killed; CI runners
+# are ephemeral and the fixtures dispose their containers explicitly, so it's
+# safe to disable. This removes the sole Docker Hub dependency in the run.
+env:
+  TESTCONTAINERS_RYUK_DISABLED: 'true'
+
 jobs:
   day4-tests:
     name: Day 4 — Unit + Integration tests with coverage
