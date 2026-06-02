@@ -63,8 +63,8 @@ type FieldName = 'author' | 'text';
             id="author"
             type="text"
             formControlName="author"
-            maxlength="200"
             autocomplete="off"
+            aria-required="true"
             [attr.aria-invalid]="showError('author') ? 'true' : null"
             [attr.aria-describedby]="describedBy('author')"
           />
@@ -89,11 +89,12 @@ type FieldName = 'author' | 'text';
             id="text"
             rows="4"
             formControlName="text"
-            maxlength="1000"
+            aria-required="true"
             [attr.aria-invalid]="showError('text') ? 'true' : null"
             [attr.aria-describedby]="describedBy('text')"
           ></textarea>
-          <p class="hint" id="text-hint">
+          <p class="hint" id="text-hint"
+             [class.over]="f.text.value.length > 1000">
             Required · {{ f.text.value.length }}/1000 characters.
           </p>
           @if (showError('text')) {
@@ -109,10 +110,14 @@ type FieldName = 'author' | 'text';
           }
         </div>
 
-        <!-- ── SERVER ERROR (assertive: it interrupts) ──────────────── -->
+        <!-- ── SERVER ERROR ─────────────────────────────────────────── -->
+        <!-- The persistent <div> is the live region (assertive: it interrupts).
+             Announcement comes from text appearing INSIDE it, so the inner <p>
+             carries no role="alert" — that would be a second assertive source
+             and some screen readers double-announce. One region, one source. -->
         <div class="server-status" aria-live="assertive">
           @if (quotes.submitError()) {
-            <p class="error server-error" role="alert">{{ quotes.submitError() }}</p>
+            <p class="error server-error">{{ quotes.submitError() }}</p>
           }
         </div>
 
@@ -122,10 +127,12 @@ type FieldName = 'author' | 'text';
         </button>
       </form>
 
-      <!-- ── SUCCESS (polite: announced after, doesn't interrupt) ───── -->
+      <!-- ── SUCCESS ──────────────────────────────────────────────── -->
+      <!-- Persistent polite live region (announced after, doesn't interrupt).
+           Inner <p> carries no role="status" for the same reason as above. -->
       <div class="success-status" aria-live="polite">
         @if (quotes.lastCreated(); as created) {
-          <p class="success" role="status">
+          <p class="success">
             Added quote #{{ created.id }} by {{ created.author }}.
           </p>
         }
@@ -144,6 +151,7 @@ type FieldName = 'author' | 'text';
     input:focus, textarea:focus { outline: 2px solid #0d6efd; outline-offset: 1px; }
     input[aria-invalid='true'], textarea[aria-invalid='true'] { border-color: #b02a37; }
     .hint { font-size: 0.78rem; color: #6c757d; margin: 0; }
+    .hint.over { color: #b02a37; font-weight: 600; }
     .error { font-size: 0.8rem; color: #b02a37; margin: 0; }
     .server-error { font-weight: 600; }
     .success { font-size: 0.85rem; color: #0f5132; font-weight: 600; }
@@ -198,6 +206,10 @@ export class QuoteFormComponent {
     }
 
     const { author, text } = this.form.getRawValue();
+    // Disable the whole group (not just the button) while the POST is in flight
+    // so the fields can't be edited mid-submit. disable() is the reactive-forms
+    // API — using a template [disabled] on a formControl would warn in Angular.
+    this.form.disable();
     try {
       await this.quotes.createQuote({ author: author.trim(), text: text.trim() });
       this.form.reset();        // back to empty/pristine on success
@@ -205,6 +217,8 @@ export class QuoteFormComponent {
     } catch {
       // Server message is already in quotes.submitError(); keep the user's
       // input so they can retry without retyping.
+    } finally {
+      this.form.enable();       // re-enable on success (now empty) or error (values kept)
     }
   }
 

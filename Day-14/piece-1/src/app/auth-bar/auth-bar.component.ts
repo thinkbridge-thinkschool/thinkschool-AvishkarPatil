@@ -31,7 +31,7 @@ import { AuthService }                from '../auth.service';
             <div class="field">
               <label for="login-email">Email</label>
               <input id="login-email" type="email" formControlName="email"
-                     autocomplete="username"
+                     autocomplete="username" aria-required="true"
                      [attr.aria-invalid]="invalid('email') ? 'true' : null"
                      [attr.aria-describedby]="invalid('email') ? 'login-email-error' : null" />
               @if (invalid('email')) {
@@ -41,7 +41,7 @@ import { AuthService }                from '../auth.service';
             <div class="field">
               <label for="login-password">Password</label>
               <input id="login-password" type="password" formControlName="password"
-                     autocomplete="current-password"
+                     autocomplete="current-password" aria-required="true"
                      [attr.aria-invalid]="invalid('password') ? 'true' : null"
                      [attr.aria-describedby]="invalid('password') ? 'login-password-error' : null" />
               @if (invalid('password')) {

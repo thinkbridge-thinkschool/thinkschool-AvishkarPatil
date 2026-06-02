@@ -172,8 +172,8 @@ Run: API on `:5075` (`cd QuotesApi && dotnet run`), app on `:4200` (`npm start`)
 | **Empty (pristine)** | Initial load | No errors shown; `aria-describedby` points only to the hint; submit enabled |
 | **Invalid — required** | Submit with both fields blank | Both `role="alert"` errors appear; **focus jumps to `#author`**; `aria-invalid="true"` on both |
 | **Invalid — whitespace** | Type `"   "` in author, blur | "Author can’t be only spaces." (the `notBlank` validator, matching server `IsNullOrWhiteSpace`) |
-| **Invalid — too long** | Paste 201+ chars in author / 1001+ in text | maxlength caps typing at 200/1000; the `maxlength` error branch is the safety net |
-| **Submitting** | Valid submit | Button → "Adding…", `disabled`, `aria-busy="true"` while `POST /api/quotes` is in flight |
+| **Invalid — too long** | Type/paste 201+ chars in author / 1001+ in text | `maxLength(200)`/`maxLength(1000)` fires → "must be N characters or fewer."; the text counter turns red past 1000 |
+| **Submitting** | Valid submit | Button → "Adding…", `disabled`, `aria-busy="true"`; the **fields disable** (`form.disable()`) so they can't be edited mid-POST |
 | **Server-error (401)** | Submit while **signed out** (endpoint is `RequireAuthorization("can-edit-quotes")`) | `assertive` live region announces "You must be signed in with edit rights to add a quote."; **input is kept** for retry |
 | **Server-error (403)** | Sign in as the **viewer** (`reader@example.com`), submit | viewer token lacks `scope=quotes.write` → `403` → same auth message; a true negative test |
 | **Server-error (unreachable)** | Stop the API, submit | timeout interceptor → `HTTP 0` branch → "Could not reach the API. Is it running on :5075?" |
@@ -183,9 +183,15 @@ Run: API on `:5075` (`cd QuotesApi && dotnet run`), app on `:4200` (`npm start`)
 
 - **Keyboard path:** `Tab` reaches Author → Quote text → Add quote in order; `Space`/`Enter` submits; no mouse needed. On a failed submit, focus lands on the first invalid field (not the page top), so the next keystroke is in the right place.
 - **Labels:** each `<label for>` matches its control `id` (`author`/`text`) — clicking the label focuses the field, and a screen reader reads the label on focus.
-- **axe / SR wiring to verify live:** `aria-invalid` flips to `true` only on error; `aria-describedby` reads the hint normally and appends `…-error` when the alert is present; field errors are `role="alert"`, the server error is `aria-live="assertive"` (interrupts), and success is `aria-live="polite"` (announced after).
+- **axe / SR wiring to verify live:** each control carries `aria-required="true"` so the mandatory state is in the a11y tree (not just the visible `*`/hint); `aria-invalid` flips to `true` only on error; `aria-describedby` reads the hint normally and appends `…-error` when the alert is present; field errors are `role="alert"`; the server-error and success messages live in **persistent** `aria-live` regions (`assertive` / `polite`) — the announcement comes from text appearing inside them, so the inner `<p>` carries no extra `role`, avoiding double-announce.
 
 **Auth note:** `POST /api/quotes` is `RequireAuthorization("can-edit-quotes")`, which needs a `scope=quotes.write` claim — only a **writer** token carries it ([TokenService.cs:28-29](QuotesApi/Services/TokenService.cs#L28-L29)). To make the full success path demonstrable in the UI, a minimal sign-in was added: a compact reactive [`AuthBarComponent`](src/app/auth-bar/auth-bar.component.ts) + [`AuthService`](src/app/auth.service.ts) that calls `POST /api/auth/login` and stores the access token in a signal, and an [`authInterceptor`](src/app/interceptors/auth.interceptor.ts) that attaches `Authorization: Bearer …` to `/api` calls. Sign in as `demo@example.com` / `P@ssw0rd!` (writer) for a real `201`; `reader@example.com` (viewer) demonstrates the `403`. The token is in-memory only — no refresh, no persistence; auth is a supporting concern here, not the focus.
+
+**Fixes applied after a strict self-review of the diff:**
+1. **Required state wasn't programmatically exposed** — the `*` was `aria-hidden` and `aria-invalid` only appears after a failed submit, so before submitting a screen reader never announced the field as required. Added `aria-required="true"` to both controls (and to the sign-in fields).
+2. **`maxLength` error was near-dead UI** — the native `maxlength` attribute truncated input/paste, so the validator's "must be N characters or fewer" branch could essentially never render. Dropped the native cap so the `maxLength(200)`/`maxLength(1000)` validator actually owns the limit and its message shows (the text counter also turns red past 1000).
+3. **Double-announce risk** — the server-error/success messages had both an `aria-live` container *and* an inner `role="alert"`/`role="status"` (themselves live). Made the persistent container the single live region and removed the inner roles.
+4. **Fields stayed editable mid-submit** — only the button disabled. Now `form.disable()`/`enable()` wraps the in-flight POST.
 
 > **Honest caveat:** I have not yet captured a live screen-reader recording or axe report this session; the rows above are the states the form is built to exercise. Final submission should include an axe run + the keyboard/SR pass screenshots.
 
