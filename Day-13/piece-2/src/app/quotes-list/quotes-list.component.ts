@@ -1,28 +1,34 @@
-// ── Day-13 piece-2 — QuotesListComponent (list + detail) ──────────────────
+// ── QuotesListComponent (list + detail + filtering) ───────────────────────
 //
 // A quotes LIST + DETAIL screen against the real Week-1 API:
 //   list   → GET /api/quotes?page={page}&size={size}
 //   detail → GET /api/quotes/{id}
 //
-// Demonstrates the Day-13 requirements:
-//   • signals for loading / error / data — independently for list AND detail
-//   • inject() for the service (no constructor)
-//   • fully typed model (Quote) — no `any`
-//   • new control flow @if / @for (with track) / @switch
-//   • stale-response race handled (rapid detail clicks abort the prior fetch)
+// Primary feature (Day-13 piece-2): list + detail with independent
+// loading/error/data signals, inject(), typed model, @if/@for/@switch, and a
+// handled stale-response race on the detail fetch.
+//
+// Restored from Day-13 piece-1: client-side SEARCH + AUTHOR FILTER + RESET,
+// built from the same signal/computed primitives — searchTerm + selectedAuthor
+// signals feed a filteredQuotes computed; authors()/totalCount() are derived;
+// resetFilters() clears both. Filtering applies to the currently-loaded page
+// (quotes.quotes()), exactly as piece-1 filtered its loaded collection.
 //
 // Standalone — no NgModule.
 // ─────────────────────────────────────────────────────────────────────────
 
-import { Component, inject } from '@angular/core';
-import { QuotesService }     from '../quotes.service';
+import { Component, computed, inject, signal } from '@angular/core';
+import { FormsModule }    from '@angular/forms';
+import { QuotesService }  from '../quotes.service';
+import { Quote }          from '../models/quote';
 
 @Component({
   selector: 'app-quotes-list',
   standalone: true,
+  imports: [FormsModule],
   template: `
     <h1>Quotes</h1>
-    <h2>List + Detail · Day 13 Piece 2 · live Week-1 API</h2>
+    <h2>List + Detail · live Week-1 API</h2>
 
     <div class="layout">
 
@@ -34,29 +40,62 @@ import { QuotesService }     from '../quotes.service';
           <button (click)="quotes.nextPage()">Next ›</button>
         </div>
 
-        <!-- List state machine: loading / error / empty / data -->
+        <!-- List state machine: loading / error / data -->
         @if (quotes.listLoading()) {
           <p class="status">Loading quotes…</p>
         } @else if (quotes.listError()) {
           <p class="status error">
             Failed to load quotes. Is the Week-1 API running on :5075?
           </p>
-        } @else if (quotes.quotes().length === 0) {
-          <p class="status empty">No quotes on this page.</p>
         } @else {
-          <ul class="quote-list">
-            <!-- @for with MANDATORY track quote.id -->
-            @for (quote of quotes.quotes(); track quote.id) {
-              <li
-                class="quote-row"
-                [class.selected]="quote.id === quotes.selectedId()"
-                (click)="quotes.selectQuote(quote.id)"
-              >
-                <span class="row-author">{{ quote.author }}</span>
-                <span class="row-text">{{ quote.text }}</span>
-              </li>
-            }
-          </ul>
+
+          <!-- Filter controls (restored from piece-1) -->
+          <div class="filters">
+            <input
+              type="text"
+              placeholder="Search text or author…"
+              aria-label="Search quotes"
+              [ngModel]="searchTerm()"
+              (ngModelChange)="searchTerm.set($event)"
+            />
+            <select
+              aria-label="Filter by author"
+              [ngModel]="selectedAuthor()"
+              (ngModelChange)="selectedAuthor.set($event)"
+            >
+              <option value="">All authors</option>
+              @for (author of authors(); track author) {
+                <option [value]="author">{{ author }}</option>
+              }
+            </select>
+            <button type="button" (click)="resetFilters()">Reset</button>
+          </div>
+
+          <!-- Counts — derived straight from the computeds -->
+          <p class="stats">
+            Showing {{ filteredQuotes().length }} of {{ totalCount() }} on this page
+            @if (searchTerm() || selectedAuthor()) { · filtered }
+          </p>
+
+          @if (quotes.quotes().length === 0) {
+            <p class="status empty">No quotes on this page.</p>
+          } @else if (filteredQuotes().length === 0) {
+            <p class="status empty">No quotes match the current filters.</p>
+          } @else {
+            <ul class="quote-list">
+              <!-- @for over the FILTERED list, MANDATORY track quote.id -->
+              @for (quote of filteredQuotes(); track quote.id) {
+                <li
+                  class="quote-row"
+                  [class.selected]="quote.id === quotes.selectedId()"
+                  (click)="quotes.selectQuote(quote.id)"
+                >
+                  <span class="row-author">{{ quote.author }}</span>
+                  <span class="row-text">{{ quote.text }}</span>
+                </li>
+              }
+            </ul>
+          }
         }
       </section>
 
@@ -97,6 +136,13 @@ import { QuotesService }     from '../quotes.service';
     .list-pane { flex: 1 1 50%; }
     .detail-pane { flex: 1 1 50%; }
     .controls { display: flex; gap: 0.75rem; align-items: center; margin-bottom: 1rem; }
+    .filters { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; }
+    .filters input, .filters select {
+      font: inherit; padding: 0.35rem 0.5rem; border: 1px solid #adb5bd; border-radius: 6px;
+    }
+    .filters input { flex: 1 1 12rem; }
+    .filters input:focus, .filters select:focus { outline: 2px solid #0d6efd; outline-offset: 1px; }
+    .stats { font-size: 0.8rem; color: #6c757d; margin: 0 0 0.75rem; }
     .quote-list { list-style: none; display: flex; flex-direction: column; gap: 0.4rem; }
     .quote-row {
       display: flex; flex-direction: column; gap: 0.2rem;
@@ -122,6 +168,35 @@ export class QuotesListComponent {
 
   // inject() — no constructor parameter.
   protected readonly quotes = inject(QuotesService);
+
+  // ── Filter signals (restored from Day-13 piece-1) ─────────────────
+  protected readonly searchTerm     = signal<string>('');
+  protected readonly selectedAuthor = signal<string>('');
+
+  // ── Derived from the loaded page + the two filter signals ─────────
+  // filteredQuotes re-evaluates whenever quotes(), searchTerm(), or
+  // selectedAuthor() change — one targeted re-render of the @for list.
+  protected readonly filteredQuotes = computed<Quote[]>(() => {
+    const term   = this.searchTerm().toLowerCase().trim();
+    const author = this.selectedAuthor();
+
+    return this.quotes.quotes().filter(q => {
+      const matchesText   = !term   || q.text.toLowerCase().includes(term)
+                                    || q.author.toLowerCase().includes(term);
+      const matchesAuthor = !author || q.author === author;
+      return matchesText && matchesAuthor;
+    });
+  });
+
+  // Total of the loaded page; the dropdown's unique, sorted author list.
+  protected readonly totalCount = computed<number>(() => this.quotes.quotes().length);
+  protected readonly authors    = computed<string[]>(() =>
+    [...new Set(this.quotes.quotes().map(q => q.author))].sort());
+
+  resetFilters(): void {
+    this.searchTerm.set('');
+    this.selectedAuthor.set('');
+  }
 
   // Detail state collapsed into one discriminant for the @switch.
   // Order matters: loading is checked before error/loaded so a re-fetch
