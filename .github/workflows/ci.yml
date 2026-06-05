@@ -123,7 +123,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Guard: skip all subsequent steps if the project hasn't been committed yet.
+      # This prevents pushes from other days (e.g. Day-17) from failing CI
+      # simply because Day-3/piece-7 is not in the repo yet.
+      - name: Check if project exists
+        id: check
+        run: |
+          if [ -f "Day-3/piece-7/Quotes.Tests.Integration/Quotes.Tests.Integration.csproj" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Project found — will run integration tests."
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Day-3/piece-7 not yet committed — skipping integration tests."
+          fi
+
       - name: Setup .NET 10
+        if: steps.check.outputs.exists == 'true'
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
@@ -132,15 +147,19 @@ jobs:
       # the 1.5 GB SQL Server 2022 layer download.  Subsequent runs hit the
       # Docker layer cache on the runner and skip this step quickly.
       - name: Pre-pull SQL Server 2022 image
+        if: steps.check.outputs.exists == 'true'
         run: docker pull mcr.microsoft.com/mssql/server:2022-latest
 
       - name: Restore
+        if: steps.check.outputs.exists == 'true'
         run: dotnet restore Day-3/piece-7/Quotes.Tests.Integration/Quotes.Tests.Integration.csproj
 
       - name: Build
+        if: steps.check.outputs.exists == 'true'
         run: dotnet build Day-3/piece-7/Quotes.Tests.Integration/Quotes.Tests.Integration.csproj --no-restore --configuration Release
 
       - name: Integration tests
+        if: steps.check.outputs.exists == 'true'
         run: >
           dotnet test Day-3/piece-7/Quotes.Tests.Integration/Quotes.Tests.Integration.csproj
           --no-build --configuration Release
@@ -148,7 +167,7 @@ jobs:
           --results-directory ./test-results
 
       - name: Upload test results
-        if: always()
+        if: always() && steps.check.outputs.exists == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: integration-test-results
