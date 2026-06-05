@@ -1,0 +1,21 @@
+# Angular / Node build artifacts — never commit these
+/node_modules
+/dist
+/.angular/cache
+/.angular
+
+# QuotesApi (.NET) build output
+QuotesApi/bin
+QuotesApi/obj
+
+# Logs / editor
+*.log
+.DS_Store
+
+# Day-17 MI broker (Azure Functions) build + local settings
+api/node_modules
+api/dist
+api/local.settings.json
+
+# Lighthouse raw reports are kept as evidence in Screenshots/ but ignore stray temp
+*.lhr.json
