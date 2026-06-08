@@ -5,3 +5,7 @@ obj/
 *.sqlite
 *.user
 *.suo
+node_modules/
+dist/
+TestResults/
+coverage-report/
