@@ -108,10 +108,11 @@ export const options = SCENARIO === 'sustained'
                 maxDuration: '30s',
             },
         },
-        // p(90) is always computed; p(99) is omitted — with 50 iterations the
-        // single setup() discovery probe (cold cache, ~5 s) is always the
-        // statistical outlier and makes p99 meaningless for the stampede result.
-        summaryTrendStats: ['avg', 'min', 'med', 'max', 'p(90)', 'p(95)'],
+        // p(99) is included in summaryTrendStats so the value is computed and
+        // displayed.  No p(99) threshold is set — with 50 iterations the
+        // single setup() discovery probe is the statistical p99 outlier, so a
+        // threshold would fire on the cold-cache probe rather than VU traffic.
+        summaryTrendStats: ['avg', 'min', 'med', 'max', 'p(90)', 'p(95)', 'p(99)'],
         thresholds: {
             // p(95)<500: all 50 coalesced VUs must complete within 500 ms.
             // p(99) excluded — see summaryTrendStats comment above.
@@ -166,8 +167,9 @@ export function handleSummary(data) {
         `│  Req/s      : ${String(rps).padEnd(36)}│`,
         `│  avg (ms)   : ${String(d?.values?.avg?.toFixed(1)         ?? '?').padEnd(36)}│`,
         `│  p50 (ms)   : ${String(d?.values?.med?.toFixed(1)         ?? '?').padEnd(36)}│`,
-        `│  p95 (ms)   : ${String(d?.values?.['p(95)']?.toFixed(1)   ?? '?').padEnd(36)}│`,
         `│  p90 (ms)   : ${String(d?.values?.['p(90)']?.toFixed(1)   ?? '?').padEnd(36)}│`,
+        `│  p95 (ms)   : ${String(d?.values?.['p(95)']?.toFixed(1)   ?? '?').padEnd(36)}│`,
+        `│  p99 (ms)   : ${String(d?.values?.['p(99)']?.toFixed(1)   ?? '?').padEnd(36)}│`,
         `│  max (ms)   : ${String(d?.values?.max?.toFixed(1)         ?? '?').padEnd(36)}│`,
         `│  Failed     : ${String(data.metrics.http_req_failed?.values?.passes ?? 0).padEnd(36)}│`,
         '├─────────────────────────────────────────────────────┤',
