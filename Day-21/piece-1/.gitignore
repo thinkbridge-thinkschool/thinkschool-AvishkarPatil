@@ -1,0 +1,13 @@
+# Angular / Node build artifacts — never commit these
+/node_modules
+/dist
+/.angular/cache
+/.angular
+
+# QuotesApi (.NET) build output
+QuotesApi/bin
+QuotesApi/obj
+
+# Logs / editor
+*.log
+.DS_Store
