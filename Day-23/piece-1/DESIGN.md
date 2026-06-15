@@ -310,7 +310,7 @@ env:
 
 ```powershell
 # 1. Create resource group (once)
-az group create --name rg-busbooking-dev --location eastus
+az group create --name rg-busbooking-dev --location southeastasia
 
 # 2. Dry-run (what-if) — shows every resource that will be created/modified
 az deployment group what-if `
@@ -331,13 +331,17 @@ az deployment group show `
   --query properties.outputs.apiUrl.value -o tsv
 ```
 
-### What-if output (dev)
+### 1 — Bicep build (validation, 0 errors)
+![Bicep build clean](./Screenshots/08-bicep-build.png)
 
-![Bicep what-if output](./Screenshots/08-bicep-whatif.png)
+### 2 — What-if output (dry run, 12 resources to create)
+![Bicep what-if output](./Screenshots/09-bicep-whatif.png)
 
-### Successful deploy output
+### 3 — Deploy succeeded (provisioningState: Succeeded + outputs)
+![Bicep deploy succeeded](./Screenshots/10-bicep-deploy-succeeded.png)
 
-![Bicep deploy succeeded](./Screenshots/09-bicep-deploy.png)
+### 4 — All 12 resources visible in Azure (Portal or CLI list)
+![Resources created](./Screenshots/12-resources-created.png)
 
 ### Post-deploy: run EF migrations
 

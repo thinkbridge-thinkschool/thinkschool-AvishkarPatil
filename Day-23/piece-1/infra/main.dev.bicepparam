@@ -21,7 +21,7 @@
 using 'main.bicep'
 
 param appName          = 'busbooking'
-param location         = 'eastus'
+param location         = 'southeastasia'
 param environment      = 'dev'
 
 param sqlAdminLogin    = 'sqladmin'
