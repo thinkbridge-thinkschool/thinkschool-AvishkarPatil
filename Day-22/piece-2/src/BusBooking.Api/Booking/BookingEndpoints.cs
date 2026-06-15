@@ -61,7 +61,7 @@ public static class BookingEndpoints
             return Results.NoContent();
         }
         catch (NotFoundException ex) { return Results.NotFound(ex.Message); }
-        catch (UnauthorizedAccessException) { return Results.Forbid(); }
+        catch (UnauthorizedAccessException) { return Results.StatusCode(403); }
         catch (InvalidOperationException ex) { return Results.Conflict(ex.Message); }
     }
 }
