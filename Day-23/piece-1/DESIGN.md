@@ -1,259 +1,108 @@
-# Bus Booking — One-Page Design
+# Day 23 — IaC: Parameterised Bicep Modules
 
-## Product Slice
-Online bus ticket booking: search routes, select seats, book tickets, and receive confirmation — all as a single deployable modular monolith.
+**What this piece adds:** Every Azure resource the Bus Booking app needs — SQL Server, Service Bus, App Service — described as composable, parameterised Bicep modules. No portal click-ops required; a single `az deployment group create` stands up a complete environment in under 3 minutes.
 
 ---
 
 ## Proof It Runs
 
-### 1 — App startup & database seeding
+### App — startup & seeding
 ![Startup and seeding](./Screenshots/01-startup-seeded.png)
 
-### 2 — Search schedules
+### App — search schedules
 ![Search schedules](./Screenshots/02-search-schedules.png)
 
-### 3 — Seat availability for a schedule
+### App — seat availability
 ![Get seats](./Screenshots/03-get-seats.png)
 
-### 4 — Create booking (201 Created)
+### App — create booking (201 Created)
 ![Create booking](./Screenshots/04-create-booking.png)
 
-### 5 — User booking history (status: Confirmed)
+### App — user booking history
 ![Get user bookings](./Screenshots/05-get-user-bookings.png)
 
-### 6 — Cancel booking (204 No Content + NoOp event log)
+### App — cancel booking (204 No Content)
 ![Cancel booking](./Screenshots/06-cancel-booking.png)
 
-### 7 — All 15 tests passing
+### App — all tests passing
 ![Tests pass](./Screenshots/07-tests-pass.png)
 
----
+### IaC — Bicep build (0 errors, 0 warnings)
+![Bicep build clean](./Screenshots/08-bicep-build.png)
 
-## Bounded Contexts
+### IaC — what-if dry run (12 resources to create)
+![Bicep what-if](./Screenshots/09-bicep-whatif.png)
 
-### 1. Scheduling
-**Owns:** Routes, Buses, Schedules, Seats  
-**Responsibility:** What buses run, when, on which routes, at what seat prices. Manages seat inventory and the 10-minute reservation lock.  
-**Key invariant:** A seat can only be reserved if its status is `Available`. Optimistic concurrency (`RowVersion`) prevents double-booking under concurrent writes.
+### IaC — deployment succeeded
+![Bicep deploy succeeded](./Screenshots/10-bicep-deploy-succeeded.png)
 
-### 2. Booking
-**Owns:** Booking aggregate, BookedSeat (value object)  
-**Responsibility:** Orchestrates the booking lifecycle — Pending → Confirmed → Cancelled/Completed. Captures a price snapshot at booking time. Raises domain events that cross context boundaries.  
-**Key invariant:** A booking must have at least one seat. Cancellation is forbidden once Completed.
+### IaC — deployment outputs (API URL, SQL FQDN, DB name)
+![Deploy outputs](./Screenshots/11-deploy-outputs.png)
 
-### 3. Notifications *(consumer only — no persistence)*
-**Owns:** Nothing persisted  
-**Responsibility:** Consumes `BookingConfirmedEvent` from Service Bus and sends a ticket confirmation email. Stateless — retry is handled by Service Bus dead-letter queue.
+### IaC — all 12 resources visible in Azure
+![Resources created](./Screenshots/12-resources-created.png)
 
----
-
-## Core Aggregate: `Booking`
-
-```
-Booking (Aggregate Root)
-├── Id: Guid
-├── UserId: Guid          — reference, not navigation
-├── UserEmail: string
-├── ScheduleId: Guid      — reference, not navigation
-├── Status: BookingStatus  [Pending → Confirmed → Cancelled | Completed]
-├── TotalAmount: decimal   — sum of seat price snapshots
-├── BookedAt: DateTime
-├── Seats: List<BookedSeat>  (owned JSON collection in EF)
-│   └── BookedSeat: record(SeatNumber, PassengerName, PassengerAge, PassengerGender, SeatPrice)
-│
-└── Domain methods
-    ├── Create(userId, email, scheduleId, seats) → Booking
-    ├── Confirm(userName) → raises BookingConfirmedEvent
-    ├── Cancel()          → raises BookingCancelledEvent
-    └── Complete()
-```
-
-State machine:
-```
-[Pending] --Confirm()--> [Confirmed] --Complete()--> [Completed]
-    |                        |
-    └───Cancel()─────────────┘
-             ↓
-         [Cancelled]
-```
+### IaC — resource group cleanup
+![Cleanup](./Screenshots/13-cleanup.png)
 
 ---
 
-## Async Flows
+## What Was Built
 
-```
- Booking Context                   Service Bus                 Consumer
- ───────────────                   ───────────                 ────────
-
- booking.Confirm()
-   → raises BookingConfirmedEvent
-       │
-       ▼
- ServiceBusEventPublisher          topic: booking-confirmed    Notifications context
- serialises + sends msg ──────────────────────────────────►   sends ticket email to UserEmail
-
- booking.Cancel()
-   → raises BookingCancelledEvent
-       │
-       ▼
- ServiceBusEventPublisher          topic: booking-cancelled    Scheduling context
- serialises + sends msg ──────────────────────────────────►   releases seats (calls seat.Release()
-                                                               for each ReleasedSeatNumber)
-
- BackgroundService (every 5 min)
-   SeatExpiryService scans all
-   active schedules, calls
-   seat.Release() on expired        [in-process, no bus]
-   reservations (>10 min locked)
-```
-
-**Why Service Bus for cross-context events?**  
-The Booking context must not directly call the Scheduling or Notifications context — that would couple them at deploy time. Service Bus provides at-least-once delivery with DLQ for failed consumers, matching the Outbox pattern already established on Day 20.
-
----
-
-## Solution Layout
-
-```
-BusBooking.sln
-├── src/
-│   ├── BusBooking.Domain/              — no external dependencies
-│   │   ├── Common/                     BaseEntity, IDomainEvent
-│   │   ├── Scheduling/
-│   │   │   ├── Entities/               Route, Bus, Schedule, Seat
-│   │   │   └── Enums/                  BusType, SeatType, SeatStatus
-│   │   └── Booking/
-│   │       ├── Aggregates/             Booking  ← core aggregate
-│   │       ├── ValueObjects/           BookedSeat
-│   │       ├── Enums/                  BookingStatus
-│   │       └── Events/                 BookingConfirmedEvent, BookingCancelledEvent
-│   │
-│   ├── BusBooking.Application/         → depends on Domain only
-│   │   ├── Common/                     IEventPublisher, NotFoundException
-│   │   ├── Scheduling/
-│   │   │   ├── Queries/SearchSchedules/
-│   │   │   └── Repositories/          IScheduleRepository
-│   │   └── Booking/
-│   │       ├── Commands/CreateBooking/
-│   │       ├── Commands/CancelBooking/
-│   │       ├── Queries/GetUserBookings/
-│   │       └── Repositories/          IBookingRepository
-│   │
-│   ├── BusBooking.Infrastructure/      → depends on Application + Domain
-│   │   ├── Persistence/               BusBookingDbContext + EF Configurations
-│   │   ├── Repositories/              BookingRepository, ScheduleRepository
-│   │   ├── Messaging/                 ServiceBusEventPublisher
-│   │   ├── BackgroundServices/        SeatExpiryService (IHostedService)
-│   │   └── InfrastructureServiceExtensions.cs
-│   │
-│   └── BusBooking.Api/                → depends on Application + Infrastructure
-│       ├── Booking/                   BookingEndpoints (Minimal API)
-│       ├── Scheduling/                ScheduleEndpoints (Minimal API)
-│       └── Program.cs
-│
-└── tests/
-    └── BusBooking.Domain.Tests/        BookingAggregateTests (5 cases)
-```
-
----
-
-## Dependency Rule (enforced by project references)
-
-```
-Api → Infrastructure → Application → Domain
-                    ↗
-      Infrastructure
-```
-
-Domain has zero dependencies. Application depends only on Domain. Infrastructure implements Application interfaces. Api wires it all together.
-
----
-
-## Concurrency: Two `ReserveSeats` Calls Collide
-
-The double-booking scenario and how every layer handles it:
-
-```
-Request A (books seat 5)               Request B (also wants seat 5)
-──────────────────────────             ──────────────────────────────
-1. SELECT seat 5 → Available           1. SELECT seat 5 → Available
-   (RowVersion = 0x01)                    (RowVersion = 0x01)
-
-2. seat.Reserve() in-memory            2. seat.Reserve() in-memory
-   → Status = Reserved                    → Status = Reserved
-   (no DB write yet)                      (no DB write yet)
-
-3. seat.Book() in-memory
-   → Status = Booked
-
-4. SaveChangesAsync()
-   SQL: UPDATE Seats SET Status='Booked'
-        WHERE Id=... AND RowVersion=0x01
-   → 1 row affected ✓
-   RowVersion incremented to 0x02
-
-                                        4. SaveChangesAsync()
-                                           SQL: UPDATE Seats SET Status='Booked'
-                                                WHERE Id=... AND RowVersion=0x01
-                                           → 0 rows affected (version mismatch)
-                                           EF throws DbUpdateConcurrencyException
-
-                                        5. BookingRepository.SaveChangesAsync()
-                                           catches DbUpdateConcurrencyException
-                                           → rethrows InvalidOperationException(
-                                               "seats taken by concurrent booking")
-
-                                        6. BookingEndpoints catches
-                                           InvalidOperationException → HTTP 409
-
-                                        7. Client retries: loads seat 5 again
-                                           → Status = Booked, seat.Reserve() throws
-                                           → HTTP 409 "Seat 5 is not available"
-```
-
-**Why two layers?**
-
-- **Domain (`seat.Reserve()` guard):** Protects against bugs where two in-process threads share the same `DbContext` and both call `ReserveSeats` on the same in-memory object. This is a safety net; it cannot fire in a correctly-scoped DI setup where each request owns its own context.
-- **EF `RowVersion`:** The real concurrent-request guard. Two separate HTTP requests each get their own scoped `DbContext`, each read the same `RowVersion`, one write succeeds, the other's `SaveChangesAsync` throws. No application-level locking required.
-
-**`SeatExpiryService` races:**
-The background service can also collide with a booking. It wraps `SaveChangesAsync` in a try/catch for the concurrency exception, logs a warning, and lets the next 5-minute poll correct the state. No seat stays orphaned longer than 10 minutes.
-
----
-
-## Key Design Decisions
-
-| Decision | Choice | Reason |
-|---|---|---|
-| Architecture | Modular Monolith | One deployable; bounded by namespace not process |
-| Seat concurrency | EF `RowVersion` on `Seat` | Prevents double-booking without distributed lock |
-| Concurrency exception | Caught in `BookingRepository`, rethrown as `InvalidOperationException` | Keeps Application layer free of EF references; endpoint already maps `InvalidOperationException` → 409 |
-| Payment | Stubbed (`Confirm()` auto-succeeds) | Out of scope for capstone; extractable later |
-| Cross-context events | Azure Service Bus | At-least-once delivery + DLQ; consistent with Day 19-20 patterns |
-| Seat expiry | `BackgroundService` every 5 min | Replaces Spring's `@Scheduled`; no external scheduler needed |
-| DTO storage | Owned JSON collection (`BookedSeat`) | Price snapshot frozen at booking time; no FK join needed |
-
----
-
-## Infrastructure as Code (Bicep)
-
-All Azure resources are described as parameterised Bicep modules — no portal click-ops required.
-
-### Module tree
+The Bicep IaC layer that provisions every Azure resource the bus booking modular monolith needs:
 
 ```
 infra/
-├── main.bicep                  ← orchestrator; composed from the three modules below
-├── main.dev.bicepparam         ← dev parameter file  (Basic SQL, B1 App Service)
-├── main.prod.bicepparam        ← prod parameter file (S2 SQL, P1v3 App Service)
+├── main.bicep                ← orchestrator; composes the three modules below
+├── main.dev.bicepparam       ← dev parameter file  (Basic SQL, B1 App Service)
+├── main.prod.bicepparam      ← prod parameter file (S2 SQL, P1v3 App Service)
 └── modules/
-    ├── sql.bicep               ← SQL Server + Database + firewall rules
-    ├── servicebus.bicep        ← Namespace + booking-confirmed/cancelled topics + auth rule
-    └── api.bicep               ← Log Analytics + App Insights + App Service Plan + Web App
+    ├── sql.bicep             ← SQL Server + Database + firewall rules
+    ├── servicebus.bicep      ← Namespace + booking-confirmed/cancelled topics + auth rule
+    └── api.bicep             ← Log Analytics + App Insights + App Service Plan + Web App
 ```
 
-### Resource map
+---
+
+## Module Design
+
+### `sql.bicep`
+Provisions a SQL Server and database, with environment-aware firewall rules.
+
+- Dev: `AllowDevAccess` firewall rule opens 0.0.0.0–255.255.255.255 so developers can reach the DB from local machines.
+- Prod: only `AllowAzureServices` is open — the App Service connects via Azure's internal network; no public IP range is whitelisted.
+- Backup: Local-redundant in dev, Geo-redundant in prod.
+- Outputs `serverFqdn`, `databaseName`, and `connectionString` (consumed by `api.bicep`).
+
+### `servicebus.bicep`
+Provisions a Service Bus namespace with two topics and a single shared auth rule.
+
+- Topics: `booking-confirmed`, `booking-cancelled` — map 1:1 to domain events raised by the Booking aggregate.
+- Auth rule: `api-send-listen` — Send + Listen rights only. No Manage permission issued to the app.
+- Outputs `connectionString` (consumed by `api.bicep`).
+
+### `api.bicep`
+Provisions the full observability + compute stack.
+
+- Log Analytics workspace → App Insights component wired to it.
+- Linux App Service Plan (SKU is a parameter: B1 in dev, P1v3 in prod).
+- Web App: .NET 10, HTTPS-only, `APPLICATIONINSIGHTS_CONNECTION_STRING` and both connection strings injected as app settings at deploy time — no secrets in source control.
+- Zone-redundancy enabled in prod (P1v3 required).
+
+### `main.bicep` — orchestrator
+Composes the three modules and threads outputs between them:
+
+```
+sql.outputs.connectionString       ─┐
+                                    ├─► api module params
+serviceBus.outputs.connectionString ─┘
+```
+
+Exposes four outputs: `apiUrl`, `apiHostName`, `sqlServerFqdn`, `sqlDatabaseName`.
+
+---
+
+## Resource Map
 
 ```
 Resource Group: rg-busbooking-{env}
@@ -273,25 +122,30 @@ Resource Group: rg-busbooking-{env}
 └── app-busbooking-{env}-{suffix}          Microsoft.Web/sites (.NET 10, HTTPS-only)
 ```
 
-`{suffix}` is `take(uniqueString(resourceGroup().id), 6)` — deterministic per resource group, prevents global-name collisions.
+`{suffix}` = `take(uniqueString(resourceGroup().id), 6)` — deterministic per resource group, prevents global DNS name collisions across Azure tenants.
 
-### SKU comparison
+---
 
-| Resource | Dev | Prod | Reason |
+## SKU Comparison: Dev vs Prod
+
+| Resource | Dev | Prod | Why |
 |---|---|---|---|
-| SQL Database | Basic 5 DTU | S2 50 DTU | Dev: cheapest paid tier; Prod: handles burst load |
-| SQL backup | Local | Geo-redundant | Cost vs recovery point |
-| App Service Plan | B1 (1 vCPU) | P1v3 (2 vCPU) | P-series enables zone redundancy |
-| App Service zone-redundant | No | Yes (P1v3+) | HA in prod; not needed in dev |
-| Service Bus | Standard | Standard | Topics require ≥ Standard in both envs |
+| SQL Database | Basic / 5 DTU | S2 / 50 DTU | Dev: cheapest paid tier; Prod: handles burst load |
+| SQL backup | Local-redundant | Geo-redundant | Cost vs data recovery guarantee |
+| App Service Plan | B1 (1 vCPU, 1.75 GB) | P1v3 (2 vCPU, 8 GB) | P-series unlocks zone redundancy |
+| Zone-redundant App Service | No | Yes | HA in prod; unnecessary and unbillable on B-series |
+| Service Bus tier | Standard | Standard | Topics require ≥ Standard in both envs |
 | Log Analytics retention | 30 days | 90 days | Prod needs longer audit trail |
-| Dev SQL firewall | Open (0→255) | Closed | Devs need DB access locally; prod traffic via App Service only |
+| Dev SQL firewall | 0.0.0.0–255.255.255.255 | AllowAzureServices only | Devs need local DB access; prod locks down |
 
-### Secrets handling
+---
 
-The SQL admin password is **never committed to source control**. Both `.bicepparam` files read it from an environment variable at deploy time:
+## Secrets Handling
+
+The SQL admin password is **never committed**. Both `.bicepparam` files read it from an environment variable at deploy time:
 
 ```bicep
+// main.dev.bicepparam
 param sqlAdminPassword = readEnvironmentVariable('SQL_ADMIN_PASSWORD')
 ```
 
@@ -306,49 +160,39 @@ env:
   SQL_ADMIN_PASSWORD: ${{ secrets.SQL_ADMIN_PASSWORD }}
 ```
 
-### Deploy commands
+App settings (connection strings, App Insights key) are injected directly into the Web App by `api.bicep` at deploy time — never stored in `appsettings.json`.
+
+---
+
+## Deploy Runbook
 
 ```powershell
-# 1. Create resource group (once)
+# 1. Set the SQL password for this shell session
+$env:SQL_ADMIN_PASSWORD = 'YourP@ssword123!'
+
+# 2. Create resource group (once per environment)
 az group create --name rg-busbooking-dev --location southeastasia
 
-# 2. Dry-run (what-if) — shows every resource that will be created/modified
+# 3. Dry-run — shows every resource that will be created or modified
 az deployment group what-if `
   --resource-group rg-busbooking-dev `
   --template-file infra/main.bicep `
   --parameters infra/main.dev.bicepparam
 
-# 3. Deploy
+# 4. Deploy
 az deployment group create `
   --resource-group rg-busbooking-dev `
   --template-file infra/main.bicep `
   --parameters infra/main.dev.bicepparam
 
-# 4. Get the API URL from deployment outputs
+# 5. Retrieve outputs
 az deployment group show `
   --resource-group rg-busbooking-dev `
   --name main `
-  --query properties.outputs.apiUrl.value -o tsv
-```
+  --query properties.outputs -o json
 
-### 1 — Bicep build (validation, 0 errors)
-![Bicep build clean](./Screenshots/08-bicep-build.png)
-
-### 2 — What-if output (dry run, 12 resources to create)
-![Bicep what-if output](./Screenshots/09-bicep-whatif.png)
-
-### 3 — Deploy succeeded (provisioningState: Succeeded + outputs)
-![Bicep deploy succeeded](./Screenshots/10-bicep-deploy-succeeded.png)
-
-### 4 — All 12 resources visible in Azure (Portal or CLI list)
-![Resources created](./Screenshots/12-resources-created.png)
-
-### Post-deploy: run EF migrations
-
-The Bicep creates the empty database. Schema is applied by running EF Core migrations against the provisioned server:
-
-```powershell
-$env:CONN = az deployment group show `
+# 6. Apply EF Core migrations against the provisioned database
+$fqdn = az deployment group show `
   --resource-group rg-busbooking-dev `
   --name main `
   --query "properties.outputs.sqlServerFqdn.value" -o tsv
@@ -356,5 +200,23 @@ $env:CONN = az deployment group show `
 dotnet ef database update `
   --project src/BusBooking.Infrastructure `
   --startup-project src/BusBooking.Api `
-  --connection "Server=tcp:$env:CONN,1433;Initial Catalog=sqldb-busbooking-dev;..."
+  --connection "Server=tcp:$fqdn,1433;Initial Catalog=sqldb-busbooking-dev;User Id=sqladmin;Password=$env:SQL_ADMIN_PASSWORD;Encrypt=True;"
+
+# 7. Cleanup (tears down all 12 resources at once)
+az group delete --name rg-busbooking-dev --yes --no-wait
 ```
+
+---
+
+## Key Design Decisions
+
+| Decision | Choice | Reason |
+|---|---|---|
+| IaC tool | Bicep | Native ARM DSL; no Terraform state file to manage; first-class `az` integration |
+| Module granularity | sql / servicebus / api | Each module owns one bounded concern; independently reusable |
+| Naming suffix | `uniqueString(resourceGroup().id)` | Deterministic + collision-proof across tenants without a random seed |
+| Secrets at deploy time | `readEnvironmentVariable()` in `.bicepparam` | Password never touches source control; works identically locally and in CI |
+| App settings injection | `api.bicep` writes connection strings as Web App settings | App reads from environment — no `appsettings.Production.json` needed |
+| Region | `southeastasia` | Only Azure for Students region with Container Apps quota (constraint from Day prior) |
+| Dev firewall | Wide-open IP range | Devs need local SQL access; acceptable risk in ephemeral dev resource group |
+| Prod firewall | AllowAzureServices only | App Service accesses SQL within Azure's network; no public endpoint needed |
