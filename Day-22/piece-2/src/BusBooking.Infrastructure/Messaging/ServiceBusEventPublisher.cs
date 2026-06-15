@@ -20,7 +20,7 @@ internal sealed class ServiceBusEventPublisher(
     public async Task PublishAsync<T>(T domainEvent, CancellationToken ct = default) where T : IDomainEvent
     {
         var topic = TopicFor(typeof(T));
-        var sender = client.CreateSender(topic);
+        await using var sender = client.CreateSender(topic);
 
         var body = JsonSerializer.Serialize(domainEvent, domainEvent.GetType());
         var message = new ServiceBusMessage(body)

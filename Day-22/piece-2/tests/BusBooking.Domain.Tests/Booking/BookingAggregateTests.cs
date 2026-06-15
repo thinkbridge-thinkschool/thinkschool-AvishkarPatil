@@ -29,7 +29,7 @@ public sealed class BookingAggregateTests
     }
 
     [Fact]
-    public void Confirm_ShouldTransitionToPending_AndRaiseEvent()
+    public void Confirm_ShouldTransitionToConfirmed_AndRaiseEvent()
     {
         var booking = MakeBooking();
         booking.Confirm("Avishkar Patil");

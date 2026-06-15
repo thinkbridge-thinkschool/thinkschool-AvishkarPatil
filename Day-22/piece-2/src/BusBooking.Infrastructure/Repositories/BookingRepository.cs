@@ -19,6 +19,19 @@ internal sealed class BookingRepository(BusBookingDbContext db) : IBookingReposi
     public async Task AddAsync(BookingAggregate booking, CancellationToken ct = default) =>
         await db.Bookings.AddAsync(booking, ct);
 
-    public Task SaveChangesAsync(CancellationToken ct = default) =>
-        db.SaveChangesAsync(ct);
+    public async Task SaveChangesAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // EF's RowVersion on Seat detected that another request already wrote to one of the
+            // seats we reserved between our read and our write. Translate to a domain-meaningful
+            // exception so the Application layer stays free of EF references.
+            throw new InvalidOperationException(
+                "One or more seats were taken by a concurrent booking. Please refresh seat availability and try again.");
+        }
+    }
 }

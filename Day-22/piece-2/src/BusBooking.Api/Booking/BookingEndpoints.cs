@@ -41,10 +41,8 @@ public static class BookingEndpoints
         IBookingRepository bookingRepo,
         CancellationToken ct)
     {
-        var bookings = await bookingRepo.GetByUserIdAsync(userId, ct);
-        var dtos = bookings.Select(b => new BookingDto(
-            b.Id, b.ScheduleId, b.Status, b.TotalAmount, b.BookedAt,
-            b.Seats.Select(s => new BookedSeatDto(s.SeatNumber, s.PassengerName, s.PassengerAge, s.SeatPrice)).ToList()));
+        var handler = new GetUserBookingsHandler(bookingRepo);
+        var dtos = await handler.HandleAsync(new GetUserBookingsQuery(userId), ct);
         return Results.Ok(dtos);
     }
 

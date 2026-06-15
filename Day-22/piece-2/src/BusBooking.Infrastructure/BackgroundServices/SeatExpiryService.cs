@@ -18,7 +18,25 @@ internal sealed class SeatExpiryService(
         while (!stoppingToken.IsCancellationRequested)
         {
             await Task.Delay(Interval, stoppingToken);
-            await ReleaseExpiredReservationsAsync(stoppingToken);
+            try
+            {
+                await ReleaseExpiredReservationsAsync(stoppingToken);
+            }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                // Normal shutdown — let the loop exit.
+                break;
+            }
+            catch (Exception ex)
+            {
+                // Log and continue — an unhandled exception here would kill the loop permanently,
+                // meaning no expired reservations would ever be released until process restart.
+                // DbUpdateConcurrencyException is the common case: a booking won the race on a
+                // seat we were about to release; the next poll cycle will see the correct state.
+                logger.LogWarning(ex,
+                    "SeatExpiryService: failed to release expired reservations; will retry in {Interval}",
+                    Interval);
+            }
         }
     }
 

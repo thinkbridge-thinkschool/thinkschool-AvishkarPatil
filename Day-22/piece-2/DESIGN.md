@@ -5,6 +5,31 @@ Online bus ticket booking: search routes, select seats, book tickets, and receiv
 
 ---
 
+## Proof It Runs
+
+### 1 — App startup & database seeding
+![Startup and seeding](./Screenshots/01-startup-seeded.png)
+
+### 2 — Search schedules
+![Search schedules](./Screenshots/02-search-schedules.png)
+
+### 3 — Seat availability for a schedule
+![Get seats](./Screenshots/03-get-seats.png)
+
+### 4 — Create booking (201 Created)
+![Create booking](./Screenshots/04-create-booking.png)
+
+### 5 — User booking history (status: Confirmed)
+![Get user bookings](./Screenshots/05-get-user-bookings.png)
+
+### 6 — Cancel booking (204 No Content + NoOp event log)
+![Cancel booking](./Screenshots/06-cancel-booking.png)
+
+### 7 — All 15 tests passing
+![Tests pass](./Screenshots/07-tests-pass.png)
+
+---
+
 ## Bounded Contexts
 
 ### 1. Scheduling
@@ -145,12 +170,65 @@ Domain has zero dependencies. Application depends only on Domain. Infrastructure
 
 ---
 
+## Concurrency: Two `ReserveSeats` Calls Collide
+
+The double-booking scenario and how every layer handles it:
+
+```
+Request A (books seat 5)               Request B (also wants seat 5)
+──────────────────────────             ──────────────────────────────
+1. SELECT seat 5 → Available           1. SELECT seat 5 → Available
+   (RowVersion = 0x01)                    (RowVersion = 0x01)
+
+2. seat.Reserve() in-memory            2. seat.Reserve() in-memory
+   → Status = Reserved                    → Status = Reserved
+   (no DB write yet)                      (no DB write yet)
+
+3. seat.Book() in-memory
+   → Status = Booked
+
+4. SaveChangesAsync()
+   SQL: UPDATE Seats SET Status='Booked'
+        WHERE Id=... AND RowVersion=0x01
+   → 1 row affected ✓
+   RowVersion incremented to 0x02
+
+                                        4. SaveChangesAsync()
+                                           SQL: UPDATE Seats SET Status='Booked'
+                                                WHERE Id=... AND RowVersion=0x01
+                                           → 0 rows affected (version mismatch)
+                                           EF throws DbUpdateConcurrencyException
+
+                                        5. BookingRepository.SaveChangesAsync()
+                                           catches DbUpdateConcurrencyException
+                                           → rethrows InvalidOperationException(
+                                               "seats taken by concurrent booking")
+
+                                        6. BookingEndpoints catches
+                                           InvalidOperationException → HTTP 409
+
+                                        7. Client retries: loads seat 5 again
+                                           → Status = Booked, seat.Reserve() throws
+                                           → HTTP 409 "Seat 5 is not available"
+```
+
+**Why two layers?**
+
+- **Domain (`seat.Reserve()` guard):** Protects against bugs where two in-process threads share the same `DbContext` and both call `ReserveSeats` on the same in-memory object. This is a safety net; it cannot fire in a correctly-scoped DI setup where each request owns its own context.
+- **EF `RowVersion`:** The real concurrent-request guard. Two separate HTTP requests each get their own scoped `DbContext`, each read the same `RowVersion`, one write succeeds, the other's `SaveChangesAsync` throws. No application-level locking required.
+
+**`SeatExpiryService` races:**
+The background service can also collide with a booking. It wraps `SaveChangesAsync` in a try/catch for the concurrency exception, logs a warning, and lets the next 5-minute poll correct the state. No seat stays orphaned longer than 10 minutes.
+
+---
+
 ## Key Design Decisions
 
 | Decision | Choice | Reason |
 |---|---|---|
 | Architecture | Modular Monolith | One deployable; bounded by namespace not process |
 | Seat concurrency | EF `RowVersion` on `Seat` | Prevents double-booking without distributed lock |
+| Concurrency exception | Caught in `BookingRepository`, rethrown as `InvalidOperationException` | Keeps Application layer free of EF references; endpoint already maps `InvalidOperationException` → 409 |
 | Payment | Stubbed (`Confirm()` auto-succeeds) | Out of scope for capstone; extractable later |
 | Cross-context events | Azure Service Bus | At-least-once delivery + DLQ; consistent with Day 19-20 patterns |
 | Seat expiry | `BackgroundService` every 5 min | Replaces Spring's `@Scheduled`; no external scheduler needed |

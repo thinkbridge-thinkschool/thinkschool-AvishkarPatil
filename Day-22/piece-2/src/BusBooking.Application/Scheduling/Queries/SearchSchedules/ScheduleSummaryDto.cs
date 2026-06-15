@@ -10,4 +10,4 @@ public sealed record ScheduleSummaryDto(
     TimeOnly DepartureTime,
     TimeOnly ArrivalTime,
     int AvailableSeats,
-    decimal MinSeatPrice);
+    decimal? MinSeatPrice);  // null when the schedule is fully booked

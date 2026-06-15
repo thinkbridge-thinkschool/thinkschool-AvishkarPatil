@@ -39,9 +39,10 @@ internal sealed class ScheduleRepository(BusBookingDbContext db) : IScheduleRepo
                 x.Schedule.DepartureTime,
                 x.Schedule.ArrivalTime,
                 x.Schedule.Seats.Count(seat => seat.Status == SeatStatus.Available),
+                // Cast to decimal? so EF/LINQ returns null (not an exception) when no available seats exist.
                 x.Schedule.Seats
                     .Where(seat => seat.Status == SeatStatus.Available)
-                    .Select(seat => seat.Price)
+                    .Select(seat => (decimal?)seat.Price)
                     .Min()))
             .ToListAsync(ct);
     }

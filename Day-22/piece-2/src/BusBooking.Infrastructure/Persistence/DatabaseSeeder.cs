@@ -34,7 +34,7 @@ public sealed class DatabaseSeeder(BusBookingDbContext db, ILogger<DatabaseSeede
         await db.Buses.AddRangeAsync([bus1, bus2, bus3], ct);
 
         // Schedules — today + tomorrow
-        var today    = DateOnly.FromDateTime(DateTime.Today);
+        var today    = DateOnly.FromDateTime(DateTime.UtcNow);
         var tomorrow = today.AddDays(1);
 
         var schedules = new List<Domain.Scheduling.Entities.Schedule>
